@@ -13,9 +13,11 @@ import Config
 
 loopTelegram ::  Config -> Int -> IO () 
 loopTelegram  conf offs = do    
-    listUpdJons <- fetchJSON "/getUpdates" [offset offs, timeout 5]
+    listUpdJons <- fetchJSON "/getUpdates" [offset offs, timeout 100]
     let listUpd = upds $ updatesResponseFromJSON listUpdJons
-    mapM_ copyMessage listUpd
+    let listUpds = concat (map ((take (numberRepeat conf)).repeat) listUpd)
+    
+    mapM_ copyMessage listUpds
     loopTelegram conf $ newoffs listUpd 
       where    
         copyMessage :: Update -> IO LBC.ByteString

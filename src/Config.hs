@@ -41,7 +41,7 @@ data Config = Config {
                       api :: String 
                      ,token :: String
                      ,logg :: LoggLevel
-                     ,repeat :: Int
+                     ,numberRepeat :: Int
                      } deriving (Show)
     
 getConfig :: IO Config
@@ -56,8 +56,8 @@ getConfig = do
                         "INFO"  -> INFO
                         "ERROR" -> ERROR
                         _       -> UNDEF 
-    repeat <- C.lookupDefault 1 conf (T.pack "configBot.repeat") :: IO Int     
-    return (Config api token loggLevel repeat)
+    numberRepeat <- C.lookupDefault 1 conf (T.pack "configBot.repeat") :: IO Int     
+    return (Config api token loggLevel numberRepeat)
 
 wrongToken :: String -> Bool
 wrongToken ('b':'o':'t':xs) = not (length xs == 46)
