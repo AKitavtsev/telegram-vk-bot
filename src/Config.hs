@@ -41,22 +41,23 @@ data Config = Config {
                       api :: String 
                      ,token :: String
                      ,logg :: LoggLevel
+                     ,repeat :: Int
                      } deriving (Show)
     
 getConfig :: IO Config
 getConfig = do    
-    conf  <- C.load [C.Required "bot.conf", C.Optional "local_bot.conf"]
+    conf  <- C.load [C.Optional "bot.conf", C.Optional "local_bot.conf"]
     api   <- C.lookupDefault "telegram" conf (T.pack "configBot.api") :: IO String
-    token <- C.require conf (T.pack "configBot.token") :: IO String 
+    token <- C.lookupDefault "" conf (T.pack "configBot.token") :: IO String 
     loggS <- C.lookupDefault "INFO" conf (T.pack "configBot.logg_level") :: IO String
     let loggLevel = case loggS of
                         "DEBUG" -> DEBUG
                         "WARN"  -> WARN
                         "INFO"  -> INFO
                         "ERROR" -> ERROR
-                        _       -> UNDEF                
-    -- read loggS :: LoggLevel     
-    return (Config api token loggLevel)
+                        _       -> UNDEF 
+    repeat <- C.lookupDefault 1 conf (T.pack "configBot.repeat") :: IO Int     
+    return (Config api token loggLevel repeat)
 
 wrongToken :: String -> Bool
 wrongToken ('b':'o':'t':xs) = not (length xs == 46)

@@ -34,6 +34,9 @@ main  = do
     debugM (logg conf) "--main" (" -- configuration file bot.conf read:\n" ++ show conf) 
     when (logg conf  == UNDEF) $ do
         undefM (logg conf) "" " -- logg_level By default - UNDEF"
+    when (token conf == "") $ do
+        errorM (logg conf)  "The token for teltgram is not defined in the configuration file.\n "
+                            "Default not posible" 
     when (wrongToken (token conf)) $ do
         errorM (logg conf) " -- token should look like:\n " "bot1509893058:AAD3uC_cmyxDQJfBZtQgs2E4-K55xivO8Wc" 
     case api conf of
