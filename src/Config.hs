@@ -1,12 +1,26 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Config where
+module Config
+    -- (LoggLevel
+    -- ,Config
+    -- ,debugM
+    -- ,infoM
+    -- ,warnM
+    -- ,errorM
+    -- ,undefM
+    -- ,getConfig
+    -- ,wrongToken
+    -- ) 
+    where
+
+import Control.Monad (when)
  
 import qualified Data.Configurator as C
 import qualified Data.Text as T
-import Control.Monad (when)
 
-data LoggLevel = DEBUG | INFO | WARN | ERROR |UNDEF deriving (Show, Eq, Ord, Read)
+
+data LoggLevel = DEBUG | INFO | WARN | ERROR |UNDEF deriving (Show, Eq, Ord)
 
 debugM :: LoggLevel -> String -> String -> IO ()
 debugM logg pref str = do
@@ -37,26 +51,25 @@ undefM logg pref str = do
         putStrLn ("UNDEF  " ++ pref ++ str)
         return ()         
         
-data Config = Config {
-                      api :: String 
-                     ,token :: String
-                     ,logg :: LoggLevel
-                     ,numberRepeat :: Int
+data Config = Config {сonfigApi          :: !String 
+                     ,сonfigToken        :: !String
+                     ,сonfigLogg         :: !LoggLevel
+                     ,сonfigNumberRepeat :: !Int
                      } deriving (Show)
     
 getConfig :: IO Config
-getConfig = do    
+getConfig = do
     conf  <- C.load [C.Optional "bot.conf", C.Optional "local_bot.conf"]
     api   <- C.lookupDefault "telegram" conf (T.pack "configBot.api") :: IO String
-    token <- C.lookupDefault "" conf (T.pack "configBot.token") :: IO String 
+    token <- C.lookupDefault "" conf (T.pack "configBot.token") :: IO String
     loggS <- C.lookupDefault "INFO" conf (T.pack "configBot.logg_level") :: IO String
     let loggLevel = case loggS of
                         "DEBUG" -> DEBUG
                         "WARN"  -> WARN
                         "INFO"  -> INFO
                         "ERROR" -> ERROR
-                        _       -> UNDEF 
-    numberRepeat <- C.lookupDefault 1 conf (T.pack "configBot.repeat") :: IO Int     
+                        _       -> UNDEF
+    numberRepeat <- C.lookupDefault 1 conf (T.pack "configBot.repeat") :: IO Int
     return (Config api token loggLevel numberRepeat)
 
 wrongToken :: String -> Bool

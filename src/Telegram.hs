@@ -1,30 +1,43 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Telegram where
-
+module Telegram 
+    (loopTelegram
+    ) where
+    
+import Data.Aeson
 import Network.HTTP.Simple
+
+import Config
+import DataTelegram
+
 import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy.Char8 as LBC
-import           Data.Aeson
-
-import DataTelegram
-import Config
+import qualified Data.Text as T
 
 
-loopTelegram ::  Config -> Int -> IO () 
-loopTelegram  conf offs = do    
-    listUpdJons <- fetchJSON "/getUpdates" [offset offs, timeout 100]
+{- | Trying to get another Update. Processing. We go to the next. 
+-- Parameters - сonfig and offset
+-}
+loopTelegram ::  Config -> Int -> IO ()
+loopTelegram  conf offs = do
+-- https://api.telegram.org/bot<token>/getUpdates
+    listUpdJons <- fetchJSON "/getUpdates" [offset offs, timeout 5]
     let listUpd = upds $ updatesResponseFromJSON listUpdJons
-    let listUpds = concat (map ((take (numberRepeat conf)).repeat) listUpd)
+    
+    
+    
+-- повторяем принятые сообщения repeat (bot.conf) раз
+    let listUpds = concat (map ((take (сonfigNumberRepeat conf)).repeat) listUpd)
     
     mapM_ copyMessage listUpds
-    loopTelegram conf $ newoffs listUpd 
-      where    
+    loopTelegram conf $ newoffs listUpd
+      where
         copyMessage :: Update -> IO LBC.ByteString
         copyMessage x =  fetchJSON "/copyMessage" [chatId userId,
                                                    fromChatId userId,
-                                                             messageId (mesId x)] 
-                         where userId = usId x
+                                                             messageId (mesId x)]
+          where userId = usId x
                          
         newoffs :: [Update] -> Int
         newoffs [] = 0
@@ -61,6 +74,15 @@ loopTelegram  conf offs = do
         mesId :: Update -> Int
         mesId x = case message x of
                      Just y -> message_id y
+                     
+        txt :: Update -> T.Text
+        txt x = let t = case message x of
+                     Just y -> text y
+                in case t of
+                    Just z -> z
+                    Nothing -> ""
+                            
+
                
         fetchJSON :: String -> [QueryItem] -> IO LBC.ByteString
         fetchJSON meth qi = do
@@ -69,15 +91,15 @@ loopTelegram  conf offs = do
             
         buildRequest :: String -> [QueryItem] -> Request
         buildRequest p querys = setRequestHost appTelegram
-                                $ setRequestPath (path p) 
+                                $ setRequestPath (path p)
                                 $ setRequestQueryString querys
-                                $ defaultRequest 
+                                $ defaultRequest
 
         updatesResponseFromJSON :: LBC.ByteString -> Maybe UpdatesResponse
-        updatesResponseFromJSON = decode 
+        updatesResponseFromJSON = decode
                                 
         path ::  String -> BC.ByteString
-        path meth = BC.pack $ token conf ++ meth
+        path meth = BC.pack $ сonfigToken conf ++ meth
 
 
     

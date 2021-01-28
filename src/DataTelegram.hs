@@ -4,37 +4,29 @@
 {-# LANGUAGE RankNTypes  #-}
 {-# LANGUAGE FlexibleContexts  #-}
 
-module DataTelegram where
+module DataTelegram
+  where
 
 import           Data.Aeson
 import           Data.Aeson.Types
-import           Data.Int                     (Int64)
 import           GHC.Generics
-
-import           Prelude                      hiding (id)
-
 import           Data.List
 import           Data.Text                    (Text)
 import           GHC.Generics
+
 import qualified Data.ByteString.Char8 as BC
 
-import Config
-
--- import           Web.Data
-
--- import           JsonExt
--- import Data
 
 -- | Method used to drop prefix from field name during deserialization
 parseJsonDrop :: forall a.(Generic a, GFromJSON Zero (Rep a)) => Int -> Value -> Parser a
 parseJsonDrop prefix = genericParseJSON defaultOptions { fieldLabelModifier = drop prefix }
 
 appTelegram :: BC.ByteString
-appTelegram = "api.telegram.org" 
+appTelegram = "api.telegram.org"
 
 data Response a = Response
   {
-    result     :: a   
+    result     :: a
   } deriving (Show, Generic, FromJSON)
   
 type UpdatesResponse = Response [Update]
@@ -49,9 +41,12 @@ data Message = Message
   {
     message_id              :: Int -- ^ Unique message identifier
   , from                    :: Maybe User -- ^ Sender, can be empty for messages sent to channels
-  , date                    :: Int -- ^ Date the message was sent in Unix time
-  , chat                    :: Chat -- ^ Conversation the message belongs to
+  -- , date                    :: Int -- ^ Date the message was sent in Unix time
+  -- , chat                    :: Chat -- ^ Conversation the message belongs to 
+  , text                    :: Maybe Text -- ^ Signature of the post author for messages in channels
   } deriving (FromJSON, Show, Generic)
+  
+
 
 data User = User
   {
@@ -63,30 +58,25 @@ data User = User
 instance FromJSON User where
   parseJSON = parseJsonDrop 5
   
-data Chat = Chat
-  { chat_id                             :: Integer
-    -- ^ Unique identifier for this chat.
-    -- This number may be greater than 32 bits and some programming languages
-    -- may have difficulty/silent defects in interpreting it.
-    -- But it is smaller than 52 bits,
-    -- so a signed 64 bit integer or double-precision float type are safe for
-    -- storing this identifier.
-  , chat_type                           :: ChatType   -- ^ Type of chat, can be either 'Private', 'Group', 'Supergroup' or 'Channel'
-  } deriving (Show, Generic)
+-- data Chat = Chat
+  -- { chat_id                             :: Integer
+  -- , chat_type                           :: ChatType   -- ^ Type of chat, can be either 'Private', 'Group', 
+  -- } deriving (Show, Generic)
 
-instance FromJSON Chat where
-  parseJSON = parseJsonDrop 5
+-- instance FromJSON Chat
+  -- where
+    -- parseJSON = parseJsonDrop 5
 
--- | Type of chat.
-data ChatType = Private
-              | Group
-              | Supergroup
-              | Channel deriving (Show, Generic)
 
-instance FromJSON ChatType where
-  parseJSON "private"    = pure Private
-  parseJSON "group"      = pure Group
-  parseJSON "supergroup" = pure Supergroup
-  parseJSON "channel"    = pure Channel
-  parseJSON _            = fail "Failed to parse ChatType"
+-- data ChatType = Private
+              -- | Group
+              -- | Supergroup
+              -- | Channel deriving (Show, Generic)
+
+-- instance FromJSON ChatType where
+  -- parseJSON "private"    = pure Private
+  -- parseJSON "group"      = pure Group
+  -- parseJSON "supergroup" = pure Supergroup
+  -- parseJSON "channel"    = pure Channel
+  -- parseJSON _            = fail "Failed to parse ChatType"
   
