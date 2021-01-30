@@ -4,6 +4,7 @@
 module Main where
  
 import Control.Monad (when)
+import qualified Data.Map as M
 
 import Config
 import Telegram 
@@ -13,21 +14,10 @@ import qualified Data.Configurator as C
 import qualified Data.Text as T
 
 
--- Just (Response {result = [Update {update_id = 146878273, 
-                                  -- message = Just (Message {message_id = 25, 
-                                                           -- from = Just (User {user_id = 484189456,
-                                                                              -- user_is_bot = False,
-                                                                              -- user_first_name = "Андрей"}),
-                                                                  -- date = 1610909106,
-                                                                  -- chat = Chat {chat_id = 484189456,
-                                                                               -- chat_type = Private}
-                                                           -- }
-                                                  -- )
-                                  -- }
-                         -- ]
-                 -- }
-       -- )                
- 
+-- [Update {update_id = 146878330,
+         -- message = Just (Message {message_id = 261,
+                                  -- from = Just (User {user_id = 484189456, user_is_bot = False, user_first_name = "\1040\1085\1076\1088\1077\1081"}), text = Just "222"})}]
+
 main :: IO ()
 main  = do
     conf <- getConfig
@@ -40,10 +30,10 @@ main  = do
     when (wrongToken (сonfigToken conf)) $ do
         errorM (сonfigLogg conf) " -- token should look like:\n " "bot1509893058:AAD3uC_cmyxDQJfBZtQgs2E4-K55xivO8Wc" 
     case сonfigApi conf of
-        "telegram" -> loopTelegram conf 0
+        "telegram" -> loopTelegram conf M.empty 0
         "vk"       -> loopVk
         _          -> warnM (сonfigLogg conf) "--Unknown api." " -- By default - telegram"
-    loopTelegram (conf{сonfigApi = "telegram"}) 0
+    loopTelegram conf{сonfigApi = "telegram"} M.empty 0
 
                  
 

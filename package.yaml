@@ -27,6 +27,8 @@ dependencies:
 - aeson
 - hspec
 - configurator
+- mtl
+- containers
 
 library:
   source-dirs: src

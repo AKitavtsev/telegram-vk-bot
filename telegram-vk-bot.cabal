@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b0d80725d12ec505edb26952b61b11ce7c8cd0fdf67a12427e38dc70810a8a6d
+-- hash: 7c5e1fcc6b95bb2b72c13038d8a1ab3506794fb1b3f1d00261e63bce9415bfa5
 
 name:           telegram-vk-bot
 version:        0.1.0.0
@@ -29,6 +29,7 @@ library
   exposed-modules:
       Config
       DataTelegram
+      MapR
       Telegram
       VK
   other-modules:
@@ -40,8 +41,10 @@ library
     , base >=4.7 && <5
     , bytestring
     , configurator
+    , containers
     , hspec
     , http-conduit
+    , mtl
     , text
   default-language: Haskell2010
 
@@ -57,8 +60,10 @@ executable telegram-vk-bot-exe
     , base >=4.7 && <5
     , bytestring
     , configurator
+    , containers
     , hspec
     , http-conduit
+    , mtl
     , telegram-vk-bot
     , text
   default-language: Haskell2010
@@ -76,8 +81,10 @@ test-suite telegram-vk-bot-test
     , base >=4.7 && <5
     , bytestring
     , configurator
+    , containers
     , hspec
     , http-conduit
+    , mtl
     , telegram-vk-bot
     , text
   default-language: Haskell2010
