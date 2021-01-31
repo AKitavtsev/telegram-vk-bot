@@ -30,27 +30,29 @@ loopTelegram  conf dict offs = do
     let forKb = forKeyboard listUpd
     infoM (сonfigLogg conf) "-- loopTelegram" (" -- " ++ show (length forKb)  ++ 
                                                " responses with keyboard\n" )
-    let forC = forCopy listUpd
+    let forC = forCopy listUpd    
     infoM (сonfigLogg conf) "-- loopTelegram" (" -- " ++ show (length forC) ++ 
                                                " returns to addressees\n")
-    
--- повторяем принятые сообщения repeat (bot.conf) раз
--- let listUpds = concat (map ((take (сonfigNumberRepeat conf)).repeat) listUpd)
-
-
     -- let (a, newst) = runState stackManip st
     -- print a
-
     
     mapM_ copyMessage forC
+    mapM_ sendMessageWithKeyboard forKb
     
     loopTelegram conf dict $ newoffs listUpd
       where
         copyMessage :: Update -> IO LBC.ByteString
-        copyMessage x =  fetchJSON conf "/copyMessage" [chatId userId,
-                                                        fromChatId userId,
-                                                        messageId (mesId x)]
+        copyMessage x =  fetchJSON conf "/copyMessage" [chatId userId
+                                                       ,fromChatId userId
+                                                       ,messageId (mesId x)]       
           where userId = usId x
+          
+        sendMessageWithKeyboard :: Update -> IO LBC.ByteString
+        sendMessageWithKeyboard x =  fetchJSON conf 
+                                        "/sendMessage" [chatId (usId x)
+                                                       ,messageText (textForSend x)      
+                                                       -- ,reply_markup   ReplyKeyboardMarkup    
+                                                       ]
           
         forKeyboard xs = filter (\x -> (txt x) == "/repeat") xs
         forCopy xs = concat (map  repeating (filtred xs))
@@ -72,6 +74,15 @@ newoffs x = upId (last x) + 1
 chatId :: Int -> QueryItem
 chatId chid = ("chat_id", Just $ BC.pack (show chid))
 
+messageText :: String -> QueryItem
+messageText s = ("text", Just $ BC.pack s)
+
+-- keyboardForRepeats :: ReplyKeyboardMarkup -> QueryItem
+-- keyboardForRepeats kb = (reply_markup, Just $         kb)
+
+
+
+
 fromChatId :: Int -> QueryItem
 fromChatId chid = ("from_chat_id", Just $ BC.pack (show chid))
 
@@ -86,7 +97,11 @@ timeout to = ("timeout", Just $ BC.pack (show to))
 
 upds :: Maybe UpdatesResponse -> [Update]
 upds (Just (Response x)) = x
-upds Nothing = [] 
+upds Nothing = []
+
+textForSend :: Update -> String
+textForSend x = "Look..."
+
 
 usId :: Update  -> Int
 usId x = let us = case message x of
