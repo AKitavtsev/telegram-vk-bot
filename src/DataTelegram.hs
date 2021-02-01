@@ -21,6 +21,13 @@ import qualified Data.ByteString.Char8 as BC
 parseJsonDrop :: forall a.(Generic a, GFromJSON Zero (Rep a)) => Int -> Value -> Parser a
 parseJsonDrop prefix = genericParseJSON defaultOptions { fieldLabelModifier = drop prefix }
 
+-- | Method used to drop prefix from field name during serialization
+toJsonDrop :: forall a.(Generic a, GToJSON Zero (Rep a)) => Int -> a -> Value
+toJsonDrop prefix = genericToJSON defaultOptions {
+    fieldLabelModifier = drop prefix
+  , omitNothingFields = True
+  }
+  
 appTelegram :: BC.ByteString
 appTelegram = "api.telegram.org"
 
@@ -57,6 +64,27 @@ data User = User
 
 instance FromJSON User where
   parseJSON = parseJsonDrop 5
+  
+data ReplyKeyboardMarkup = ReplyKeyboardMarkup
+  {
+   keyboard :: [[KeyboardButton]]
+  ,resize_keyboard :: Bool
+  ,one_time_keyboard :: Bool
+  ,selective :: Bool
+  } deriving (FromJSON, ToJSON, Show, Generic)
+  
+data KeyboardButton = KeyboardButton
+  {
+    kb_text             :: Text -- ^ Text of the button. If none of the optional fields are used, it will be sent to the bot as a message when the button is pressed
+  -- , kb_request_contact  :: Maybe Bool -- ^ If True, the user's phone number will be sent as a contact when the button is pressed. Available in private chats only
+  -- , kb_request_location :: Maybe Bool -- ^ If True, the user's current location will be sent when the button is pressed. Available in private chats only
+  } deriving (Show, Generic)
+
+instance ToJSON KeyboardButton where
+  toJSON = toJsonDrop 3
+
+instance FromJSON KeyboardButton where
+  parseJSON = parseJsonDrop 3
   
 -- data Chat = Chat
   -- { chat_id                             :: Integer

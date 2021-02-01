@@ -28,9 +28,9 @@ loopTelegram  conf dict offs = do
     let listUpd = upds $ updatesResponseFromJSON listUpdJons
     debugM (сonfigLogg conf) "-- loopTelegram" (" -- List of Updates received:\n" ++ show listUpd)
     let forKb = forKeyboard listUpd
-    infoM (сonfigLogg conf) "-- loopTelegram" (" -- " ++ show (length forKb)  ++ 
-                                               " responses with keyboard\n" )
-    let forC = forCopy listUpd    
+        forC  = forCopy listUpd
+    infoM (сonfigLogg conf) "-- loopTelegram" (" -- " ++ show (length forKb)  ++
+                                               " to set the number of repetitions\n" )
     infoM (сonfigLogg conf) "-- loopTelegram" (" -- " ++ show (length forC) ++ 
                                                " returns to addressees\n")
     -- let (a, newst) = runState stackManip st
@@ -52,6 +52,7 @@ loopTelegram  conf dict offs = do
                                         "/sendMessage" [chatId (usId x)
                                                        ,messageText (textForSend x)      
                                                        -- ,reply_markup   ReplyKeyboardMarkup    
+                                                       ,keyboardForRepeats
                                                        ]
           
         forKeyboard xs = filter (\x -> (txt x) == "/repeat") xs
@@ -61,9 +62,22 @@ loopTelegram  conf dict offs = do
                 numRepeat x = M.findWithDefault (сonfigNumberRepeat conf) (usId x) dict 
         
         
- 
 
- 
+buttonForMyKb :: [KeyboardButton]
+buttonForMyKb = [KeyboardButton {kb_text = "1"}
+                ,KeyboardButton {kb_text = "2"}
+                ,KeyboardButton {kb_text = "3"}
+                ,KeyboardButton {kb_text = "4"}
+                ,KeyboardButton {kb_text = "5"}
+                ]
+                
+myKeyboard :: ReplyKeyboardMarkup
+myKeyboard = ReplyKeyboardMarkup 
+            {keyboard = [buttonForMyKb]
+            ,resize_keyboard = True
+            ,one_time_keyboard = True
+            ,selective = True}
+            
 path ::  Config -> String -> BC.ByteString
 path conf meth = BC.pack $ сonfigToken conf ++ meth
                          
@@ -77,8 +91,8 @@ chatId chid = ("chat_id", Just $ BC.pack (show chid))
 messageText :: String -> QueryItem
 messageText s = ("text", Just $ BC.pack s)
 
--- keyboardForRepeats :: ReplyKeyboardMarkup -> QueryItem
--- keyboardForRepeats kb = (reply_markup, Just $         kb)
+keyboardForRepeats :: QueryItem
+keyboardForRepeats  = ("reply_markup", Just $ replyKeyboardMarkupToJSOM myKeyboard)
 
 
 
@@ -136,6 +150,9 @@ buildRequest conf p querys = setRequestHost appTelegram
 
 updatesResponseFromJSON :: LBC.ByteString -> Maybe UpdatesResponse
 updatesResponseFromJSON = decode
+
+replyKeyboardMarkupToJSOM :: ReplyKeyboardMarkup -> BC.ByteString
+replyKeyboardMarkupToJSOM x = BC.pack (LBC.unpack (encode x))
                                 
 
 
