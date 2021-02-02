@@ -50,8 +50,7 @@ loopTelegram  conf dict offs = do
         sendMessageWithKeyboard :: Update -> IO LBC.ByteString
         sendMessageWithKeyboard x =  fetchJSON conf 
                                         "/sendMessage" [chatId (usId x)
-                                                       ,messageText (textForSend x)      
-                                                       -- ,reply_markup   ReplyKeyboardMarkup    
+                                                       ,messageText (textForSend x)        
                                                        ,keyboardForRepeats
                                                        ]
           
@@ -61,22 +60,16 @@ loopTelegram  conf dict offs = do
                 repeating x = take (numRepeat x) $ repeat x
                 numRepeat x = M.findWithDefault (сonfigNumberRepeat conf) (usId x) dict 
         
-        
-
-buttonForMyKb :: [KeyboardButton]
-buttonForMyKb = [KeyboardButton {kb_text = "1"}
-                ,KeyboardButton {kb_text = "2"}
-                ,KeyboardButton {kb_text = "3"}
-                ,KeyboardButton {kb_text = "4"}
-                ,KeyboardButton {kb_text = "5"}
+buttonForMyKb :: [InlineKeyboardButton]
+buttonForMyKb = [InlineKeyboardButton {ikb_text = "1", ikb_callback_data = Just "Repaet1"}
+                ,InlineKeyboardButton {ikb_text = "2", ikb_callback_data = Just "Repaet2"}
+                ,InlineKeyboardButton {ikb_text = "3", ikb_callback_data = Just "Repaet3"}
+                ,InlineKeyboardButton {ikb_text = "4", ikb_callback_data = Just "Repaet4"}
+                ,InlineKeyboardButton {ikb_text = "5", ikb_callback_data = Just "Repaet5"}
                 ]
                 
-myKeyboard :: ReplyKeyboardMarkup
-myKeyboard = ReplyKeyboardMarkup 
-            {keyboard = [buttonForMyKb]
-            ,resize_keyboard = True
-            ,one_time_keyboard = True
-            ,selective = True}
+myKeyboard :: InlineKeyboardMarkup
+myKeyboard = InlineKeyboardMarkup {inline_keyboard = [buttonForMyKb]}
             
 path ::  Config -> String -> BC.ByteString
 path conf meth = BC.pack $ сonfigToken conf ++ meth
@@ -92,8 +85,7 @@ messageText :: String -> QueryItem
 messageText s = ("text", Just $ BC.pack s)
 
 keyboardForRepeats :: QueryItem
-keyboardForRepeats  = ("reply_markup", Just $ replyKeyboardMarkupToJSOM myKeyboard)
-
+keyboardForRepeats  = ("reply_markup", Just $ inlineKeyboardMarkupToJSON myKeyboard)
 
 
 
@@ -120,6 +112,7 @@ textForSend x = "Look..."
 usId :: Update  -> Int
 usId x = let us = case message x of
                       Just y -> from y
+                      
          in case us of
                 Just z -> user_id z
                      
@@ -129,10 +122,12 @@ upId x = update_id x
 mesId :: Update -> Int
 mesId x = case message x of
               Just y -> message_id y
+              
                      
 txt :: Update -> T.Text
 txt x = let t = case message x of
              Just y -> text y
+             
         in case t of
             Just z -> z
             Nothing -> ""
@@ -150,11 +145,9 @@ buildRequest conf p querys = setRequestHost appTelegram
 
 updatesResponseFromJSON :: LBC.ByteString -> Maybe UpdatesResponse
 updatesResponseFromJSON = decode
-
-replyKeyboardMarkupToJSOM :: ReplyKeyboardMarkup -> BC.ByteString
-replyKeyboardMarkupToJSOM x = BC.pack (LBC.unpack (encode x))
                                 
-
+inlineKeyboardMarkupToJSON :: InlineKeyboardMarkup -> BC.ByteString
+inlineKeyboardMarkupToJSON x = BC.pack (LBC.unpack (encode x))
 
 
     
