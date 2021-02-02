@@ -51,18 +51,19 @@ data Message = Message
   -- , date                    :: Int -- ^ Date the message was sent in Unix time
   -- , chat                    :: Chat -- ^ Conversation the message belongs to 
   , text                    :: Maybe Text -- ^ Signature of the post author for messages in channels
-  } deriving (FromJSON, ToJSON, Show, Generic)
+  } deriving (FromJSON, ToJSON, Show, Eq, Generic)
   
 data CallbackQuery = CallbackQuery
   {
     cq_id                :: Text
   , cq_from              :: User
-  , cq_message           :: Maybe Message
-  , cq_inline_message_id :: Maybe Text
-  , cq_chat_instance     :: Text
-  , cq_data              :: Maybe Text
-  , cq_game_short_name   :: Maybe Text
-  } deriving (Show, Generic)
+  -- , cq_message           :: Maybe Message
+  -- , cq_inline_message_id :: Maybe Text
+  -- , cq_chat_instance     :: Text
+  -- , cq_data              :: Maybe Text
+     , cq_data              :: Maybe String
+  -- , cq_game_short_name   :: Maybe Text
+  } deriving (Show, Eq, Generic)
   
 instance ToJSON CallbackQuery where
   toJSON = toJsonDrop 3
@@ -74,7 +75,7 @@ data User = User
     user_id            :: Int        -- ^ Unique identifier for this user or bot
   , user_is_bot        :: Bool -- ^ True, if this user is a bot
   , user_first_name    :: Text       -- ^ User‘s or bot’s first name
-  } deriving (Show, Generic)
+  } deriving (Show, Eq, Generic)
 
 instance FromJSON User where
   parseJSON = parseJsonDrop 5

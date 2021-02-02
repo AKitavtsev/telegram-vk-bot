@@ -16,19 +16,26 @@ import Telegram
 
 main :: IO ()
 main = hspec $ do
-  let us = Update 146878330
+  let upMessage = Update 146878330
                 (Just (Message 261
-                      (Just (User 484189456 False "Андрей")) (Just "222")))
-   -- [Update {update_id = 146878330,
-         -- message = Just (Message {message_id = 261,
-                                  -- from = Just (User {user_id = 484189456, user_is_bot = False, user_first_name = "\1040\1085\1076\1088\1077\1081"}), text = Just "222"})}]
+                      (Just (User 484189456 False "Андрей")) (Just "222"))) 
+                Nothing
+      upCallbackQuery = Update 146878330
+                Nothing
+                (Just (CallbackQuery "2079577882558908621" 
+                      (User 484189457 False "Андрей")  (Just "333")))      
 
   describe "newoffs" $ do
     it "returns offset for next request Update" $
-      newoffs [us] `shouldBe` 146878331
+      newoffs [upMessage] `shouldBe` 146878331
   describe "usId" $ do
-    it "returns user_id" $
-      usId us `shouldBe` 484189456
+    it "returns user_id from Message" $
+      usId upMessage `shouldBe` 484189456
+    it "returns user_id from CallbackQuery" $
+      usId upCallbackQuery `shouldBe` 484189457 
+  describe "cbData" $ do
+    it "returns data from CallbackQuery" $
+      cbData upCallbackQuery `shouldBe` "333"   
   describe "chatId" $ do
     it "returns QueryItem chat_id" $
       chatId 1 `shouldBe` ("chat_id", Just $ "1")

@@ -26,46 +26,60 @@ loopTelegram  conf dict offs = do
 -- https://api.telegram.org/bot<token>/getUpdates
     listUpdJons <- fetchJSON conf "/getUpdates" [offset offs, timeout 5]
     let listUpd = upds $ updatesResponseFromJSON listUpdJons
-    debugM (сonfigLogg conf) "-- loopTelegram" (" -- List of Updates received:\n" ++ show listUpd)
-    let forKb = forKeyboard listUpd
-        forC  = forCopy listUpd
-    infoM (сonfigLogg conf) "-- loopTelegram" (" -- " ++ show (length forKb)  ++
-                                               " to set the number of repetitions\n" )
+    debugM (сonfigLogg conf) "-- loopTelegram" 
+                                    (" -- List of Updates received:\n" ++ show listUpd)
+    let listUpdWithMessage = filter (\x -> not ((message x) == Nothing)) listUpd
+        listUpdWithCallbackQuery = 
+            filter (\x -> not ((callback_query x) == Nothing)) listUpd
+        forKb = filter (\x -> (txt x) == "/repeat") listUpdWithMessage 
+        forC  = forCopy listUpdWithMessage
+    infoM (сonfigLogg conf) "-- loopTelegram"
+                                    (" -- " ++ show (length forKb)  ++
+                                     " requests sent to change the number of retries\n")
     infoM (сonfigLogg conf) "-- loopTelegram" (" -- " ++ show (length forC) ++ 
                                                " returns to addressees\n")
+    infoM (сonfigLogg conf) "-- loopTelegram"
+                                    (" -- " ++ show (length listUpdWithCallbackQuery) ++ 
+                                     " change the number of retries\n")
     -- let (a, newst) = runState stackManip st
     -- print a
     
     mapM_ copyMessage forC
     mapM_ sendMessageWithKeyboard forKb
+    -- mapM_ setNumberRepeat listUpdWithCallbackQuery
     
     loopTelegram conf dict $ newoffs listUpd
+    
       where
-        copyMessage :: Update -> IO LBC.ByteString
+        -- copyMessage :: Update -> IO LBC.ByteString
         copyMessage x =  fetchJSON conf "/copyMessage" [chatId userId
                                                        ,fromChatId userId
-                                                       ,messageId (mesId x)]       
-          where userId = usId x
-          
-        sendMessageWithKeyboard :: Update -> IO LBC.ByteString
+                                                       ,messageId (mesId x)]
+                          where userId = usId x
+                -- sendMessageWithKeyboard :: Update -> IO LBC.ByteString
         sendMessageWithKeyboard x =  fetchJSON conf 
                                         "/sendMessage" [chatId (usId x)
                                                        ,messageText (textForSend x)        
                                                        ,keyboardForRepeats
                                                        ]
-          
-        forKeyboard xs = filter (\x -> (txt x) == "/repeat") xs
+        setNumberRepeat :: Update -> State MapInt ()
+        setNumberRepeat x = changeMapInt (usId x) (read (cbData x)::Int)
+
+        
+        textForSend x = (show $ M.findWithDefault (сonfigNumberRepeat conf) (usId x) dict) ++
+                        " repetitions are set for you\n" ++
+                        "Choose how much you need in the future"        
         forCopy xs = concat (map  repeating (filtred xs))
           where filtred xxs = filter (\x ->  not ((txt x) == "/repeat")) xxs
                 repeating x = take (numRepeat x) $ repeat x
                 numRepeat x = M.findWithDefault (сonfigNumberRepeat conf) (usId x) dict 
         
 buttonForMyKb :: [InlineKeyboardButton]
-buttonForMyKb = [InlineKeyboardButton {ikb_text = "1", ikb_callback_data = Just "Repaet1"}
-                ,InlineKeyboardButton {ikb_text = "2", ikb_callback_data = Just "Repaet2"}
-                ,InlineKeyboardButton {ikb_text = "3", ikb_callback_data = Just "Repaet3"}
-                ,InlineKeyboardButton {ikb_text = "4", ikb_callback_data = Just "Repaet4"}
-                ,InlineKeyboardButton {ikb_text = "5", ikb_callback_data = Just "Repaet5"}
+buttonForMyKb = [InlineKeyboardButton {ikb_text = "1", ikb_callback_data = Just "1"}
+                ,InlineKeyboardButton {ikb_text = "2", ikb_callback_data = Just "2"}
+                ,InlineKeyboardButton {ikb_text = "3", ikb_callback_data = Just "3"}
+                ,InlineKeyboardButton {ikb_text = "4", ikb_callback_data = Just "4"}
+                ,InlineKeyboardButton {ikb_text = "5", ikb_callback_data = Just "5"}
                 ]
                 
 myKeyboard :: InlineKeyboardMarkup
@@ -105,14 +119,11 @@ upds :: Maybe UpdatesResponse -> [Update]
 upds (Just (Response x)) = x
 upds Nothing = []
 
-textForSend :: Update -> String
-textForSend x = "Look..."
-
-
 usId :: Update  -> Int
 usId x = let us = case message x of
                       Just y -> from y
-                      
+                      Nothing -> case callback_query x of
+                        Just y -> Just (cq_from  y)
          in case us of
                 Just z -> user_id z
                      
@@ -122,13 +133,18 @@ upId x = update_id x
 mesId :: Update -> Int
 mesId x = case message x of
               Just y -> message_id y
-              
-                     
+                                   
 txt :: Update -> T.Text
 txt x = let t = case message x of
-             Just y -> text y
-             
+             Just y -> text y             
         in case t of
+            Just z -> z
+            Nothing -> ""
+            
+cbData :: Update -> String
+cbData x = let cq = case callback_query x of
+                    Just y -> cq_data y
+           in case cq of
             Just z -> z
             Nothing -> ""
                                           
