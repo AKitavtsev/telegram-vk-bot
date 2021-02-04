@@ -7,6 +7,8 @@ module Telegram
 import Data.Aeson
 import Network.HTTP.Simple
 import Control.Monad.State
+-- import Control.Monad.Trans.State
+-- import Control.Monad.Trans.Class
 
 import Config
 import DataTelegram
@@ -24,6 +26,9 @@ import qualified Data.Text as T
 loopTelegram ::  Config -> MapInt -> Int -> IO ()
 loopTelegram  conf dict offs = do
 -- https://api.telegram.org/bot<token>/getUpdates
+    debugM (сonfigLogg conf) "-- loopTelegram" 
+                                    (" -- dict = " ++ show dict)
+
     listUpdJons <- fetchJSON conf "/getUpdates" [offset offs, timeout 5]
     let listUpd = upds $ updatesResponseFromJSON listUpdJons
     debugM (сonfigLogg conf) "-- loopTelegram" 
@@ -41,14 +46,16 @@ loopTelegram  conf dict offs = do
     infoM (сonfigLogg conf) "-- loopTelegram"
                                     (" -- " ++ show (length listUpdWithCallbackQuery) ++ 
                                      " change the number of retries\n")
-    -- let (a, newst) = runState stackManip st
-    -- print a
-    
+   
     mapM_ copyMessage forC
-    mapM_ sendMessageWithKeyboard forKb
-    -- mapM_ setNumberRepeat listUpdWithCallbackQuery
     
-    loopTelegram conf dict $ newoffs listUpd
+    mapM_ sendMessageWithKeyboard forKb
+    
+    let newdict = execState (mapChangeMapInt  
+                             $ getUsidAndCbdata listUpdWithCallbackQuery) dict
+    
+    
+    loopTelegram conf newdict $ newoffs listUpd
     
       where
         -- copyMessage :: Update -> IO LBC.ByteString
@@ -62,8 +69,10 @@ loopTelegram  conf dict offs = do
                                                        ,messageText (textForSend x)        
                                                        ,keyboardForRepeats
                                                        ]
-        setNumberRepeat :: Update -> State MapInt ()
-        setNumberRepeat x = changeMapInt (usId x) (read (cbData x)::Int)
+
+        getUsidAndCbdata :: [Update] -> [(Int, Int)]
+        getUsidAndCbdata xs = map fgets xs 
+           where fgets x = ((usId x), (read (cbData x)::Int))
 
         
         textForSend x = (show $ M.findWithDefault (сonfigNumberRepeat conf) (usId x) dict) ++

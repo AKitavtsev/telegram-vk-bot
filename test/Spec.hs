@@ -53,8 +53,8 @@ main = hspec $ do
       timeout 5 `shouldBe` ("timeout", Just $ "5")      
   describe "changeMapInt" $ do
     it "add in empty" $ 
-      runState (changeMapInt 5 5)  M.empty `shouldBe` ((), M.singleton 5 5)
+      runState (changeMapInt (5, 5))  M.empty `shouldBe` ((), M.singleton 5 5)
     it "add in not empty" $ 
-      runState (changeMapInt 2 22)  (M.fromList [(1,2)]) `shouldBe` ((), (M.fromList [(1,2), (2,22)]))
+      runState (changeMapInt (2, 22))  (M.fromList [(1,2)]) `shouldBe` ((), (M.fromList [(1,2), (2,22)]))
     it "replace " $ 
-      runState (changeMapInt 1 22)  (M.fromList [(1,2)]) `shouldBe` ((), (M.fromList [(1,22)]))
+      runState (changeMapInt (1, 22))  (M.fromList [(1,2)]) `shouldBe` ((), (M.fromList [(1,22)]))
