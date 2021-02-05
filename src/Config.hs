@@ -2,16 +2,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Config
-    -- (LoggLevel
-    -- ,Config
-    -- ,debugM
-    -- ,infoM
-    -- ,warnM
-    -- ,errorM
-    -- ,undefM
-    -- ,getConfig
-    -- ,wrongToken
-    -- ) 
     where
 
 import Control.Monad (when)
@@ -55,6 +45,9 @@ data Config = Config {сonfigApi          :: !String
                      ,сonfigToken        :: !String
                      ,сonfigLogg         :: !LoggLevel
                      ,сonfigNumberRepeat :: !Int
+                     ,messageForRepeat   :: !String
+                     ,messageForHelp     :: !String
+                     ,myTimeout          :: !Int
                      } deriving (Show)
     
 getConfig :: IO Config
@@ -62,7 +55,7 @@ getConfig = do
     conf  <- C.load [C.Optional "bot.conf", C.Optional "local_bot.conf"]
     api   <- C.lookupDefault "telegram" conf (T.pack "configBot.api") :: IO String
     token <- C.lookupDefault "" conf (T.pack "configBot.token") :: IO String
-    loggS <- C.lookupDefault "INFO" conf (T.pack "configBot.logg_level") :: IO String
+    loggS <- C.lookupDefault "INFO" conf (T.pack "configBot.logg_level") :: IO String 
     let loggLevel = case loggS of
                         "DEBUG" -> DEBUG
                         "WARN"  -> WARN
@@ -70,7 +63,13 @@ getConfig = do
                         "ERROR" -> ERROR
                         _       -> UNDEF
     numberRepeat <- C.lookupDefault 1 conf (T.pack "configBot.repeat") :: IO Int
-    return (Config api token loggLevel numberRepeat)
+    messageForRepeat <- C.lookupDefault "" 
+                        conf (T.pack "configBot.messageForRepeat") :: IO String
+    messageForHelp <- C.lookupDefault "" 
+                        conf (T.pack "configBot.messageForHelp") :: IO String
+    myTimeout <- C.lookupDefault 5 conf (T.pack "configBot.timeout") :: IO Int                    
+    return (Config api token loggLevel numberRepeat
+                   messageForRepeat messageForHelp myTimeout)
 
 wrongToken :: String -> Bool
 wrongToken ('b':'o':'t':xs) = not (length xs == 46)

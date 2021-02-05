@@ -1,14 +1,12 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Telegram 
+module Telegram (loopTelegram)
     where
     
 import Data.Aeson
 import Network.HTTP.Simple
 import Control.Monad.State
--- import Control.Monad.Trans.State
--- import Control.Monad.Trans.Class
 
 import Config
 import DataTelegram
@@ -25,11 +23,9 @@ import qualified Data.Text as T
 -}
 loopTelegram ::  Config -> MapInt -> Int -> IO ()
 loopTelegram  conf dict offs = do
--- https://api.telegram.org/bot<token>/getUpdates
-    debugM (сonfigLogg conf) "-- loopTelegram" 
+    debugM (сonfigLogg conf) "-- loopTelegram"
                                     (" -- dict = " ++ show dict)
-
-    listUpdJons <- fetchJSON conf "/getUpdates" [offset offs, timeout 5]
+    listUpdJons <- fetchJSON conf "/getUpdates" [offset offs, timeout (myTimeout conf)]
     let listUpd = upds $ updatesResponseFromJSON listUpdJons
     debugM (сonfigLogg conf) "-- loopTelegram" 
                                     (" -- List of Updates received:\n" ++ show listUpd)
@@ -38,48 +34,49 @@ loopTelegram  conf dict offs = do
             filter (\x -> not ((callback_query x) == Nothing)) listUpd
         forKb = filter (\x -> (txt x) == "/repeat") listUpdWithMessage 
         forC  = forCopy listUpdWithMessage
+        forHelp = filter (\x -> (txt x) == "/help") listUpdWithMessage
     infoM (сonfigLogg conf) "-- loopTelegram"
                                     (" -- " ++ show (length forKb)  ++
-                                     " requests sent to change the number of retries\n")
+                                     " requests sent to change the number of retries")
     infoM (сonfigLogg conf) "-- loopTelegram" (" -- " ++ show (length forC) ++ 
-                                               " returns to addressees\n")
+                                               " returns to addressees")
+    infoM (сonfigLogg conf) "-- loopTelegram"
+                                    (" -- " ++ show (length forHelp) ++ " help")
     infoM (сonfigLogg conf) "-- loopTelegram"
                                     (" -- " ++ show (length listUpdWithCallbackQuery) ++ 
-                                     " change the number of retries\n")
-   
+                                     " change the number of retries")
     mapM_ copyMessage forC
-    
     mapM_ sendMessageWithKeyboard forKb
-    
+    mapM_ sendMessageHelp forHelp
     let newdict = execState (mapChangeMapInt  
                              $ getUsidAndCbdata listUpdWithCallbackQuery) dict
-    
-    
     loopTelegram conf newdict $ newoffs listUpd
-    
-      where
-        -- copyMessage :: Update -> IO LBC.ByteString
+          where
         copyMessage x =  fetchJSON conf "/copyMessage" [chatId userId
                                                        ,fromChatId userId
-                                                       ,messageId (mesId x)]
+                                                       ,messageId (mesId x)
+                                                       ]
                           where userId = usId x
-                -- sendMessageWithKeyboard :: Update -> IO LBC.ByteString
         sendMessageWithKeyboard x =  fetchJSON conf 
                                         "/sendMessage" [chatId (usId x)
                                                        ,messageText (textForSend x)        
                                                        ,keyboardForRepeats
                                                        ]
-
+        sendMessageHelp x =  fetchJSON conf 
+                                        "/sendMessage" [chatId (usId x)
+                                                       ,messageText (messageForHelp conf)        
+                                                       ]
         getUsidAndCbdata :: [Update] -> [(Int, Int)]
         getUsidAndCbdata xs = map fgets xs 
-           where fgets x = ((usId x), (read (cbData x)::Int))
-
-        
-        textForSend x = (show $ M.findWithDefault (сonfigNumberRepeat conf) (usId x) dict) ++
-                        " repetitions are set for you\n" ++
-                        "Choose how much you need in the future"        
+           where fgets x = ((usId x), (read (cbData x)::Int))        
+        textForSend x = (show $ M.findWithDefault
+                                    (сonfigNumberRepeat conf)
+                                    (usId x) dict) ++ 
+                                    (messageForRepeat conf)
+      
         forCopy xs = concat (map  repeating (filtred xs))
-          where filtred xxs = filter (\x ->  not ((txt x) == "/repeat")) xxs
+          where filtred xxs = filter (\x ->  not ((txt x) == "/repeat" ||
+                                                 (txt x) == "/help" )) xxs
                 repeating x = take (numRepeat x) $ repeat x
                 numRepeat x = M.findWithDefault (сonfigNumberRepeat conf) (usId x) dict 
         
@@ -109,8 +106,6 @@ messageText s = ("text", Just $ BC.pack s)
 
 keyboardForRepeats :: QueryItem
 keyboardForRepeats  = ("reply_markup", Just $ inlineKeyboardMarkupToJSON myKeyboard)
-
-
 
 fromChatId :: Int -> QueryItem
 fromChatId chid = ("from_chat_id", Just $ BC.pack (show chid))
