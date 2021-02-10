@@ -17,7 +17,6 @@ changeMapInt (k, v) = do
     put (M.insert k v dict')
     
 mapChangeMapInt :: [(Int, Int)] -> State MapInt ()
-mapChangeMapInt xs = do
-    mapM_ changeMapInt xs
+mapChangeMapInt xs = mapM_ changeMapInt xs
 
 
