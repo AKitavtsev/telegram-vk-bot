@@ -43,7 +43,8 @@ undefM logg pref str = do
         putStrLn ("UNDEF  " ++ pref ++ str)
         return ()         
         
-data Config = Config {сonfigApi          :: !String 
+data Config = Config {сonfigApi          :: !String
+                     ,group_id           :: !String
                      ,сonfigToken        :: !String
                      ,сonfigLogg         :: !LoggLevel
                      ,сonfigNumberRepeat :: !Int
@@ -55,10 +56,8 @@ data Config = Config {сonfigApi          :: !String
 getConfig :: IO Config
 getConfig = do
     conf  <- C.load [C.Optional "bot.conf", C.Optional "local_bot.conf"]
-    api   <- C.lookupDefault "telegram" conf (T.pack "configBot.api") :: IO String    
-   
- -- token <- C.lookupDefault "" conf (T.pack "configBot.token") :: IO String
-
+    api   <- C.lookupDefault "telegram" conf (T.pack "configBot.api") :: IO String
+    group_id <- C.lookupDefault "" conf (T.pack "configBot.group_id") :: IO String    
     loggS <- C.lookupDefault "INFO" conf (T.pack "configBot.logg_level") :: IO String 
     let loggLevel = case loggS of
                         "DEBUG" -> DEBUG
@@ -77,7 +76,7 @@ getConfig = do
     myTimeout <- C.lookupDefault 5 conf (T.pack "configBot.timeout") :: IO Int
     
     
-    return (Config api token loggLevel numberRepeat
+    return (Config api group_id token loggLevel numberRepeat
                    messageForRepeat messageForHelp myTimeout)
         where
           getToken conf "telegram" loggLevel = do

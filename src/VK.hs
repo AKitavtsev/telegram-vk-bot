@@ -16,10 +16,10 @@ import MapR
 
 initSession :: Config -> IO ()
 initSession conf = do
-    sessionJons <- initFetchJSON "/groups.getLongPollServer" [group_id, access_token conf, version]
+    sessionJons <- initFetchJSON conf
 -- https://api.vk.com/method/groups.getLongPollServer?group_id=202471735&access_token=d8322e313e263070363ded0d53df2221e74c3e85edf044c101f543d8c5361bb564a0d41e23a621e3d5f3e&v=5.126
     let sessionR = sessionResponseFromJSON sessionJons
-    case sessionResponseFromJSON sessionJons of
+    case sessionR of
         (Just (Vk_Response x)) -> do
             infoM (сonfigLogg conf) "initialized session with parameters:\n"
                                     $ show x
@@ -31,47 +31,42 @@ initSession conf = do
       
 loopVk :: Config -> MapInt -> String -> Session -> IO () 
 loopVk conf dict ts sess = do
-    events <- eventFetchJSON sess conf
+    debugM (сonfigLogg conf) "--loopVK " ("ts = " ++ ts)
+    eventsJSON <- eventFetchJSON sess conf ts
+    let events = (decode eventsJSON) :: Maybe Answer
+    print eventsJSON
     print events
-    error "So long"
-    -- loopVk conf dict ts sess
-    
-vk_path ::  String -> BC.ByteString
-vk_path meth = BC.pack $ "method" ++ meth
+    let newts = case events of
+                 Just x  -> a_ts x   
+    loopVk conf dict newts sess
 
-access_token :: Config -> QueryItem
-access_token conf = ("access_token", Just $ BC.pack (сonfigToken conf))
+initFetchJSON :: Config -> IO LBC.ByteString
+initFetchJSON conf = do
+    res <- httpLBS  $ initBuildRequest conf
+    return (getResponseBody res)
 
-version :: QueryItem
-version = ("v", Just $ BC.pack "5.126")
+initBuildRequest :: Config -> Request
+initBuildRequest conf = setRequestQueryString qi
+                      $ parseRequest_  
+                        "https://api.vk.com/method/groups.getLongPollServer"
+      where
+        qi = [ ("group_id",  Just (BC.pack $ group_id conf))
+             , ("access_token",  Just (BC.pack $ сonfigToken conf))
+             , ("v",   Just "5.126")
+             ]
 
--- group_id, по всей видимости, надо в конфиг
-group_id :: QueryItem
-group_id = ("group_id", Just $ BC.pack "202471735")
-
-initFetchJSON :: String -> [QueryItem] -> IO LBC.ByteString
-initFetchJSON meth qi = do
-    res <- httpLBS  $ initBuildRequest meth qi
+eventFetchJSON :: Session -> Config -> String -> IO LBC.ByteString
+eventFetchJSON sess conf ts = do
+    res <- httpLBS  $ eventBuildRequest sess conf ts
     return (getResponseBody res)
                
-initBuildRequest :: String -> [QueryItem] -> Request
-initBuildRequest meth qi = setRequestHost appVK
-                         $ setRequestPath (vk_path meth)
-                         $ setRequestQueryString qi
-                         $ defaultRequest
-                         
-eventFetchJSON :: Session -> Config -> IO LBC.ByteString
-eventFetchJSON sess conf = do
-    res <- httpLBS  $ eventBuildRequest sess conf
-    return (getResponseBody res)
-               
-eventBuildRequest :: Session -> Config -> Request
-eventBuildRequest sess conf = setRequestQueryString qi
+eventBuildRequest :: Session -> Config -> String -> Request
+eventBuildRequest sess conf ts = setRequestQueryString qi
                             $ parseRequest_ $ server sess
     where
         qi = [ ("act",  Just "a_check")
              , ("key",  Just (BC.pack $ key sess))
-             , ("ts",   Just (BC.pack $ ts sess))
+             , ("ts",   Just (BC.pack ts))
              , ("wait", Just (BC.pack $ show (myTimeout conf)))
              ]
                           
