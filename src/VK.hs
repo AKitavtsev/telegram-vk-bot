@@ -33,12 +33,15 @@ loopVk :: Config -> MapInt -> String -> Session -> IO ()
 loopVk conf dict ts sess = do
     debugM (сonfigLogg conf) "--loopVK " ("ts = " ++ ts)
     eventsJSON <- eventFetchJSON sess conf ts
+    -- let events = (eitherDecode eventsJSON) :: Either String Answer
     let events = (decode eventsJSON) :: Maybe Answer
     print eventsJSON
     print events
     let newts = case events of
                  Just x  -> a_ts x   
     loopVk conf dict newts sess
+    
+    error "So Long" 
 
 initFetchJSON :: Config -> IO LBC.ByteString
 initFetchJSON conf = do
@@ -59,7 +62,7 @@ eventFetchJSON :: Session -> Config -> String -> IO LBC.ByteString
 eventFetchJSON sess conf ts = do
     res <- httpLBS  $ eventBuildRequest sess conf ts
     return (getResponseBody res)
-               
+
 eventBuildRequest :: Session -> Config -> String -> Request
 eventBuildRequest sess conf ts = setRequestQueryString qi
                             $ parseRequest_ $ server sess
@@ -69,6 +72,27 @@ eventBuildRequest sess conf ts = setRequestQueryString qi
              , ("ts",   Just (BC.pack ts))
              , ("wait", Just (BC.pack $ show (myTimeout conf)))
              ]
+    
+-- echoFetchJSON :: Config -> IO LBC.ByteString
+-- echoFetchJSON conf = do
+    -- res <- httpLBS  $ echoBuildRequest conf
+    -- return (getResponseBody res)
+
+echoBuildRequest :: Config -> Request
+echoBuildRequest conf = setRequestQueryString qi
+                      $ parseRequest_  
+                        "https://api.vk.com/method/messages.send"
+      where
+        qi = [ ("user_id",  Just ( ))
+             , ("forward_messages", Just ( ))  
+             , ("access_token",  Just (BC.pack $ сonfigToken conf))
+             , ("v",   Just "5.126")
+             ]
+
+               
+
+             
+             
                           
 sessionResponseFromJSON :: LBC.ByteString -> Maybe SessionResponse
 sessionResponseFromJSON = decode

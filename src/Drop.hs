@@ -4,7 +4,7 @@
 {-# LANGUAGE RankNTypes  #-}
 {-# LANGUAGE FlexibleContexts  #-}
 
-module Data
+module Drop
   where
 
 import           Data.Aeson
@@ -27,7 +27,3 @@ toJsonDrop prefix = genericToJSON defaultOptions {
   , omitNothingFields = True
   }
 
-data Response a = Response
-  {
-    result     :: a
-  } deriving (Show, Generic, FromJSON)
