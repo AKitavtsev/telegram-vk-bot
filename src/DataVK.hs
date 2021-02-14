@@ -59,7 +59,8 @@ instance FromJSON Vk_Message where
   parseJSON = parseJsonDrop 2
     
 data Vk_ItemMessage = Vk_ItemMessage 
-    { m_from_id :: Integer
+    { m_from_id :: Int
+    , m_random_id :: Integer
     , m_id :: Integer
     , m_text :: String
     } deriving (Show, Generic)

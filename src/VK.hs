@@ -17,8 +17,8 @@ import MapR
 initSession :: Config -> IO ()
 initSession conf = do
     sessionJons <- initFetchJSON conf
--- https://api.vk.com/method/groups.getLongPollServer?group_id=202471735&access_token=d8322e313e263070363ded0d53df2221e74c3e85edf044c101f543d8c5361bb564a0d41e23a621e3d5f3e&v=5.126
-    let sessionR = sessionResponseFromJSON sessionJons
+    let sessionR = (decode sessionJons) :: Maybe SessionResponse
+    -- let sessionR = sessionResponseFromJSON sessionJons
     case sessionR of
         (Just (Vk_Response x)) -> do
             infoM (сonfigLogg conf) "initialized session with parameters:\n"
@@ -31,17 +31,34 @@ initSession conf = do
       
 loopVk :: Config -> MapInt -> String -> Session -> IO () 
 loopVk conf dict ts sess = do
-    debugM (сonfigLogg conf) "--loopVK " ("ts = " ++ ts)
-    eventsJSON <- eventFetchJSON sess conf ts
+    debugM (сonfigLogg conf) "--loopVK " ("ts = " ++ ts ++ 
+                                          "  dict = " ++ show dict)
+    answerJSON <- eventFetchJSON sess conf ts
     -- let events = (eitherDecode eventsJSON) :: Either String Answer
-    let events = (decode eventsJSON) :: Maybe Answer
-    print eventsJSON
-    print events
-    let newts = case events of
-                 Just x  -> a_ts x   
-    loopVk conf dict newts sess
-    
-    error "So Long" 
+    let answerMaybe = (decode answerJSON) :: Maybe Answer
+        answer = case answerMaybe of Just x  -> x
+        events = a_updates answer
+        forC  = forCopy events
+    debugM (сonfigLogg conf) "-- loopVK "
+          (" -- List of Updates received:\n" ++ show events)
+    mapM_ copyMessage forC
+    infoM (сonfigLogg conf) "-- loopTelegram" (" -- " ++ show (length forC) ++ 
+                                               " returns to addressees")   
+    loopVk conf dict (a_ts answer) sess
+      where
+        copyMessage x =  echoFetchJSON (getVk_ItemMessage x) conf
+        forCopy xs = concat (map  repeating (filtred xs))
+          where 
+            filtred xxs = filter (\x -> not 
+                (m_text (getVk_ItemMessage x) == "/repeat" ||
+                 m_text (getVk_ItemMessage x)== "/help" )) xxs
+            repeating x = take (numRepeat x) $ repeat x
+            numRepeat x = M.findWithDefault (сonfigNumberRepeat conf)
+                                            (m_from_id (getVk_ItemMessage x))
+                                            dict
+
+getVk_ItemMessage :: Event -> Vk_ItemMessage
+getVk_ItemMessage e = m_message $ e_object e
 
 initFetchJSON :: Config -> IO LBC.ByteString
 initFetchJSON conf = do
@@ -73,26 +90,19 @@ eventBuildRequest sess conf ts = setRequestQueryString qi
              , ("wait", Just (BC.pack $ show (myTimeout conf)))
              ]
     
--- echoFetchJSON :: Config -> IO LBC.ByteString
--- echoFetchJSON conf = do
-    -- res <- httpLBS  $ echoBuildRequest conf
-    -- return (getResponseBody res)
+echoFetchJSON :: Vk_ItemMessage -> Config -> IO LBC.ByteString
+echoFetchJSON event conf = do
+    res <- httpLBS  $ echoBuildRequest event conf
+    return (getResponseBody res)
 
-echoBuildRequest :: Config -> Request
-echoBuildRequest conf = setRequestQueryString qi
+echoBuildRequest :: Vk_ItemMessage -> Config -> Request
+echoBuildRequest event conf = setRequestQueryString qi
                       $ parseRequest_  
                         "https://api.vk.com/method/messages.send"
       where
-        qi = [ ("user_id",  Just ( ))
-             , ("forward_messages", Just ( ))  
-             , ("access_token",  Just (BC.pack $ сonfigToken conf))
-             , ("v",   Just "5.126")
+        qi = [ ("user_id",          Just (BC.pack $ show (m_from_id event)))
+             , ("forward_messages", Just (BC.pack $ show (m_id event)))
+             , ("random_id",        Just (BC.pack $ show (m_random_id event)))    
+             , ("access_token",     Just (BC.pack $ сonfigToken conf))
+             , ("v",                Just "5.126")
              ]
-
-               
-
-             
-             
-                          
-sessionResponseFromJSON :: LBC.ByteString -> Maybe SessionResponse
-sessionResponseFromJSON = decode
