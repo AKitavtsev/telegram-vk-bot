@@ -67,4 +67,29 @@ data Vk_ItemMessage = Vk_ItemMessage
     
 instance FromJSON Vk_ItemMessage where
   parseJSON = parseJsonDrop 2
+  
+data Keyboard = Keyboard
+  { buttons :: [[Button]]
+  , inline :: Bool
+  } deriving (FromJSON, ToJSON, Show, Generic)
+  
+data Button = Button
+  { action :: Action
+  , color :: String
+  } deriving (FromJSON, ToJSON, Show, Generic)
+  
+data Action = Action
+  { a_type :: String
+  , a_label :: String
+  , a_payload :: String
+  } deriving (Show, Generic)
+  
+instance ToJSON Action where
+  toJSON = toJsonDrop 2
+instance FromJSON Action where
+  parseJSON = parseJsonDrop 2
+    
+
+
+
     

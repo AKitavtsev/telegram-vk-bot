@@ -35,10 +35,19 @@ loopVk conf dict ts sess = do
                                           "  dict = " ++ show dict)
     answerJSON <- eventFetchJSON sess conf ts
     -- let events = (eitherDecode eventsJSON) :: Either String Answer
+    print answerJSON
     let answerMaybe = (decode answerJSON) :: Maybe Answer
         answer = case answerMaybe of Just x  -> x
         events = a_updates answer
         forC  = forCopy events
+    
+    
+    hh <- kbFetchJSON (getVk_ItemMessage $ head events) conf
+    print hh
+    error "So Long"
+    
+    
+    
     debugM (сonfigLogg conf) "-- loopVK "
           (" -- List of Updates received:\n" ++ show events)
     mapM_ copyMessage forC
@@ -47,6 +56,7 @@ loopVk conf dict ts sess = do
     loopVk conf dict (a_ts answer) sess
       where
         copyMessage x =  echoFetchJSON (getVk_ItemMessage x) conf
+        -- echoFetchJSON (getVk_ItemMessage x) conf
         forCopy xs = concat (map  repeating (filtred xs))
           where 
             filtred xxs = filter (\x -> not 
@@ -106,3 +116,41 @@ echoBuildRequest event conf = setRequestQueryString qi
              , ("access_token",     Just (BC.pack $ сonfigToken conf))
              , ("v",                Just "5.126")
              ]
+             
+kbFetchJSON :: Vk_ItemMessage -> Config -> IO LBC.ByteString
+kbFetchJSON event conf = do
+    res <- httpLBS  $ kbBuildRequest event conf
+    return (getResponseBody res)
+
+kbBuildRequest :: Vk_ItemMessage -> Config -> Request
+kbBuildRequest event conf = setRequestQueryString qi
+                      $ parseRequest_  
+                        "https://api.vk.com/method/messages.send"
+      where
+        qi = [ ("user_id",          Just (BC.pack $ show (m_from_id event)))
+             , ("random_id",        Just (BC.pack $ show (m_random_id event))) 
+             , ("message",          Just (BC.pack $ messageForRepeat conf))
+             , ("keyboard",         Just (BC.pack $ LBC.unpack $ encode myKeyboard))
+             , ("access_token",     Just (BC.pack $ сonfigToken conf))
+             , ("v",                Just "5.126")
+             ]
+
+        buttonsForMyKb :: [Button]
+        buttonsForMyKb = [
+            Button { action = Action {a_type = "text", a_label = "1", a_payload = "1"}
+                   , color = "primary"}
+          , Button { action = Action {a_type = "text", a_label = "2", a_payload = "2"}
+                   , color = "primary"}
+          , Button { action = Action {a_type = "text", a_label = "3", a_payload = "3"}
+                   , color = "primary"}
+          , Button { action = Action {a_type = "text", a_label = "4", a_payload = "4"}
+                   , color = "primary"}
+          , Button { action = Action {a_type = "text", a_label = "5", a_payload = "5"}
+                   , color = "primary"}
+          ]
+
+        myKeyboard :: Keyboard
+        myKeyboard =  Keyboard { buttons = [buttonsForMyKb]
+                               , inline = True}
+        
+        

@@ -66,14 +66,13 @@ loopTelegram  conf dict offs = do
                                         "/sendMessage" [chatId (usId x)
                                                        ,messageText (messageForHelp conf)        
                                                        ]
-        getUsidAndCbdata :: [Update] -> [(Int, Int)]
+        -- getUsidAndCbdata :: [Update] -> [(Int, Int)]
         getUsidAndCbdata xs = map fgets xs 
            where fgets x = ((usId x), (read (cbData x)::Int))        
         textForSend x = (show $ M.findWithDefault
                                     (сonfigNumberRepeat conf)
                                     (usId x) dict) ++ 
-                                    (messageForRepeat conf)
-      
+                                    (messageForRepeat conf)      
         forCopy xs = concat (map  repeating (filtred xs))
           where filtred xxs = filter (\x ->  not ((txt x) == "/repeat" ||
                                                  (txt x) == "/help" )) xxs
