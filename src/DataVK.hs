@@ -63,6 +63,7 @@ data Vk_ItemMessage = Vk_ItemMessage
     , m_random_id :: Integer
     , m_id :: Integer
     , m_text :: String
+    , m_payload :: Maybe String
     } deriving (Show, Generic)
     
 instance FromJSON Vk_ItemMessage where

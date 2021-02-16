@@ -3,10 +3,10 @@
 
 module Telegram (loopTelegram)
     where
-    
+
+import Control.Monad.State    
 import Data.Aeson
 import Network.HTTP.Simple
-import Control.Monad.State
 
 import Config
 import DataTelegram
@@ -19,7 +19,7 @@ import qualified Data.Text as T
 
 
 {- | Trying to get another Update. Processing. We go to the next. 
--- Parameters - сonfig and offset
+-- Parameters - сonfig, dict and offset
 -}
 loopTelegram ::  Config -> MapInt -> Int -> IO ()
 loopTelegram  conf dict offs = do
@@ -58,20 +58,20 @@ loopTelegram  conf dict offs = do
                                                        ]
                           where userId = usId x
         sendMessageWithKeyboard x =  fetchJSON conf 
-                                        "/sendMessage" [chatId (usId x)
-                                                       ,messageText (textForSend x)        
-                                                       ,keyboardForRepeats
-                                                       ]
+                                     "/sendMessage" [chatId (usId x)
+                                                    ,messageText (textForRepeat $ usId x)
+                                                    ,keyboardForRepeats
+                                                    ]
         sendMessageHelp x =  fetchJSON conf 
-                                        "/sendMessage" [chatId (usId x)
-                                                       ,messageText (messageForHelp conf)        
+                                     "/sendMessage" [chatId (usId x)
+                                                    ,messageText (messageForHelp conf)        
                                                        ]
         -- getUsidAndCbdata :: [Update] -> [(Int, Int)]
         getUsidAndCbdata xs = map fgets xs 
            where fgets x = ((usId x), (read (cbData x)::Int))        
-        textForSend x = (show $ M.findWithDefault
+        textForRepeat x = (show $ M.findWithDefault
                                     (сonfigNumberRepeat conf)
-                                    (usId x) dict) ++ 
+                                    x dict) ++ 
                                     (messageForRepeat conf)      
         forCopy xs = concat (map  repeating (filtred xs))
           where filtred xxs = filter (\x ->  not ((txt x) == "/repeat" ||
