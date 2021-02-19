@@ -1,7 +1,8 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Telegram (loopTelegram)
+module Telegram 
+-- (loopTelegram)
     where
 
 import Control.Monad.State    
@@ -167,13 +168,3 @@ updatesResponseFromJSON = decode
                                 
 inlineKeyboardMarkupToJSON :: InlineKeyboardMarkup -> BC.ByteString
 inlineKeyboardMarkupToJSON x = BC.pack (LBC.unpack (encode x))
-
-
-    
-
-    
-
-
-
-    
-

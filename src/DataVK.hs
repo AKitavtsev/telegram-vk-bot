@@ -34,16 +34,12 @@ data Session = Session
     , ts :: String
     } deriving (FromJSON, Show, Generic)
     
--- data Answer = Answer
-    -- { a_ts :: String
-    -- , a_updates :: [Event] 
-    -- } deriving (Show, Generic)
-    
+
 data Answer = Answer
     { a_ts :: Maybe String
     , a_updates :: Maybe [Event] 
     , a_failed :: Maybe Int
-    } deriving (Show, Generic)
+    } deriving (Show, Eq, Generic)
     
 instance FromJSON Answer where
   parseJSON = parseJsonDrop 2 

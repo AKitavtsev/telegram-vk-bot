@@ -1,7 +1,7 @@
 module MapR
-    (MapInt
-    ,mapChangeMapInt
-    ) 
+    -- (MapInt
+    -- ,mapChangeMapInt
+    -- ) 
     where
 
 import Control.Monad.State

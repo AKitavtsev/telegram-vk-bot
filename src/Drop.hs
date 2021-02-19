@@ -16,6 +16,7 @@ import           GHC.Generics
 
 import qualified Data.ByteString.Char8 as BC
 
+
 -- | Method used to drop prefix from field name during deserialization
 parseJsonDrop :: forall a.(Generic a, GFromJSON Zero (Rep a)) => Int -> Value -> Parser a
 parseJsonDrop prefix = genericParseJSON defaultOptions { fieldLabelModifier = drop prefix }

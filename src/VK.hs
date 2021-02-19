@@ -4,6 +4,7 @@ module VK where
 
 import Control.Monad.State
 import Data.Aeson
+import Network.HTTP.Client
 import Network.HTTP.Simple
 
 import qualified Data.ByteString.Char8 as BC
@@ -19,13 +20,11 @@ initSession :: Config -> IO ()
 initSession conf = do
     sessionJons <- initFetchJSON
     let sessionR = (decode sessionJons) :: Maybe SessionResponse
-    -- let sessionR = sessionResponseFromJSON sessionJons
     case sessionR of
         (Just (Vk_Response x)) -> do
             infoM (сonfigLogg conf) "initialized session with parameters:\n"
                                     $ show x
             loopVk conf M.empty (ts x) x
-            -- loopVk conf M.empty "170" x
         Nothing -> do 
             errorM (сonfigLogg conf) "-- initSession"
                                      " -- Wrong vkToken or group_id"
@@ -50,89 +49,75 @@ loopVk :: Config -> MapInt -> String -> Session -> IO ()
 loopVk conf dict ts sess = do
     debugM (сonfigLogg conf) "-- loopVK " ("ts = " ++ ts ++ 
                                           "  dict = " ++ show dict)
-    answerJSON <- eventFetchJSON sess ts
-    -- let answerE = (eitherDecode answerJSON) :: Either String Answer
-    -- print answerJSON
-    -- print answerE    
-    let answerMaybe = (decode answerJSON) :: Maybe Answer
-        answer = case answerMaybe of Just x  -> x
+    -- answerJSON <- eventFetchJSON sess conf ts
+    
+    res <- httpLBS  $ eventBuildRequest sess conf ts
+    -- let answerJSON = getResponseBody res
+    let answerMaybe = (decode $ getResponseBody res) :: Maybe Answer
+-- тут, вроде ошибка api : при {"failed":1,"ts":30} - ts - Numder , а при
+-- {"ts":"4","updates":[{"type":................ - ts - String, по этому, 
+-- следующий закомментированный код бессмысленный. Все равно до этого не дойдет
+-- не распарсится на let answerMaybe = (decode answerJSON) :: Maybe Answer, 
+-- поэтому делаем так:
+    when (answerMaybe == Nothing) $ do
+        warnM (сonfigLogg conf) "-- loopVk" " -- requesting new values key and ts"
+        initSession conf
+    let answer = case answerMaybe of Just x  -> x
     when (a_ts answer == Nothing) $ do
         warnM (сonfigLogg conf) "-- loopVk" " -- requesting new values key and ts"
         initSession conf
     let newts = case a_ts answer of Just x -> x
--- тут, вроде ошибка api : при {"failed":1,"ts":30} - ts - Numder , а при
--- {"ts":"4","updates":[{"type":................ - ts - String, по этому, 
--- следующий закомментированный код бессмысленный. Все равно до этого не дойдет
--- не распарсится на let answerMaybe = (decode answerJSON) :: Maybe Answer, но стоит
--- об этом подумать
+-- Вот надо было бы так, но из-за, см. комментарий выше 
     -- when (a_updates answer == Nothing) $ do
         -- warnM (сonfigLogg conf) "-- loopVk" 
                                 -- (" -- history is lost, start with ts = " ++ newts)
         -- loopVk conf dict newts sess
-    let events = case a_updates answer of Just x -> x    
-        listUpdWithPayload = 
-            filter (\x -> not (m_payload  (getVk_ItemMessage x) == Nothing)) events
-        forKb = filter (\x -> (m_text (getVk_ItemMessage x) == "/repeat")) events 
-        forC  = forCopy events
-        forHelp = filter (\x -> (m_text (getVk_ItemMessage x) == "/help")) events
+        events = case a_updates answer of Just x -> x    
     debugM (сonfigLogg conf) "-- loopVK "
           (" -- List of Updates received:\n" ++ show events)
           
-    mapM_ copyMessage forC
-    mapM_ sendMessageWithKeyboard forKb
-    mapM_ helpMessage forHelp
-    
-    infoM (сonfigLogg conf) "-- loopVk"
-                                    (" -- " ++ show (length forKb)  ++
-                                     " requests sent to change the number of retries")
-    infoM (сonfigLogg conf) "-- loopVk" (" -- " ++ show (length forC) ++ 
-                                         " returns to addressees")
-    infoM (сonfigLogg conf) "-- loopVk"
-                                    (" -- " ++ show (length forHelp) ++ " help")
-    infoM (сonfigLogg conf) "-- loopVk"
-                                    (" -- " ++ show (length listUpdWithPayload) ++ 
-                                     " change the number of retries")
+    mapM_ copyMessage $ forCopy (a_updates answer) conf dict
+    mapM_ sendMessageWithKeyboard $ forKb (a_updates answer)
+    mapM_ helpMessage $ forHelp (a_updates answer)
     let newdict = execState (mapChangeMapInt  
-                             $ getUsidAndPayload listUpdWithPayload) dict
+                             $ getUsidAndPayload 
+                             $ listUpdWithPayload (a_updates answer))
+                             dict
+    
+    -- infoM (сonfigLogg conf) "-- loopVk"
+                                    -- (" -- " ++ show (length forKb)  ++
+                                     -- " requests sent to change the number of retries")
+    -- infoM (сonfigLogg conf) "-- loopVk" (" -- " ++ show (length forC) ++ 
+                                         -- " returns to addressees")
+    -- infoM (сonfigLogg conf) "-- loopVk"
+                                    -- (" -- " ++ show (length forHelp) ++ " help")
+    -- infoM (сonfigLogg conf) "-- loopVk"
+                                    -- (" -- " ++ show (length listUpdWithPayload) ++ 
+                                     -- " change the number of retries")
     loopVk conf newdict newts sess
       where
         copyMessage x =  echoFetchJSON (getVk_ItemMessage x)
-        forCopy xs = concat (map  repeating (filtred xs))
-          where 
-            filtred xxs = filter (\x -> (not 
-                (m_text (getVk_ItemMessage x) == "/repeat" ||
-                 m_text (getVk_ItemMessage x) == "/help")) && 
-                 m_payload (getVk_ItemMessage x) == Nothing) xxs
-            repeating x = take (numRepeat x) $ repeat x
-            numRepeat x = M.findWithDefault (сonfigNumberRepeat conf)
-                                            (m_from_id (getVk_ItemMessage x))
-                                            dict
         sendMessageWithKeyboard x =  kbFetchJSON (getVk_ItemMessage x)
         helpMessage x =  helpFetchJSON (getVk_ItemMessage x)
-
         getUsidAndPayload xs = map fgets xs 
            where fgets x = ((m_from_id (getVk_ItemMessage x)), (payload x))
                  payload x = case m_payload (getVk_ItemMessage x) of
                                 Just y -> read y :: Int
                                      
-        getVk_ItemMessage :: Event -> Vk_ItemMessage
-        getVk_ItemMessage e = m_message $ e_object e
+        -- eventFetchJSON :: Session -> Config -> String -> IO LBC.ByteString
+        -- eventFetchJSON sess conf ts = do
+            -- res <- httpLBS  $ eventBuildRequest sess conf ts
+            -- return (getResponseBody res)
 
-
-        eventFetchJSON :: Session -> String -> IO LBC.ByteString
-        eventFetchJSON sess ts = do
-            res <- httpLBS  $ eventBuildRequest sess ts
-            return (getResponseBody res)
-
-        eventBuildRequest :: Session -> String -> Request
-        eventBuildRequest sess ts = setRequestQueryString qi
-                                    $ parseRequest_ $ server sess
-            where
-                qi = [ ("act",  Just "a_check")
-                     , ("key",  Just (BC.pack $ key sess))
-                     , ("ts",   Just (BC.pack ts))
-                     , ("wait", Just (BC.pack $ show (myTimeout conf)))
-                     ]
+        -- eventBuildRequest :: Session -> String -> Request
+        -- eventBuildRequest sess ts = setRequestQueryString qi
+                                    -- $ parseRequest_ $ server sess
+            -- where
+                -- qi = [ ("act",  Just "a_check")
+                     -- , ("key",  Just (BC.pack $ key sess))
+                     -- , ("ts",   Just (BC.pack ts))
+                     -- , ("wait", Just (BC.pack $ show (myTimeout conf)))
+                     -- ]
             
         echoFetchJSON :: Vk_ItemMessage -> IO LBC.ByteString
         echoFetchJSON event = do
@@ -202,6 +187,38 @@ loopVk conf dict ts sess = do
                                        , one_time = False}
                                        
         textForRepeat x = (show $ M.findWithDefault
-                          (сonfigNumberRepeat conf)
-                          x dict) ++ (messageForRepeat conf)                       
-                                       
+                          (сonfigNumberRepeat conf) x dict)
+                           ++ (messageForRepeat conf)                       
+
+getVk_ItemMessage :: Event -> Vk_ItemMessage
+getVk_ItemMessage e = m_message $ e_object e
+
+listUpdWithPayload :: Maybe [Event] -> [Event]
+listUpdWithPayload ~ (Just e) = 
+    filter (\x -> not (m_payload  (getVk_ItemMessage x) == Nothing)) e
+
+forKb :: Maybe [Event] -> [Event]
+forKb ~ (Just e) = filter (\x -> (m_text (getVk_ItemMessage x) == "/repeat")) e 
+
+forHelp :: Maybe [Event] -> [Event]
+forHelp ~ (Just e) = filter (\x -> (m_text (getVk_ItemMessage x) == "/help")) e
+
+forCopy:: Maybe [Event] -> Config -> MapInt -> [Event]
+forCopy  ~ (Just e) c d = concat (map  repeating (filtred e))
+    where 
+      filtred xs = filter (\x -> (not 
+                (m_text (getVk_ItemMessage x) == "/repeat" ||
+                 m_text (getVk_ItemMessage x) == "/help")) && 
+                 m_payload (getVk_ItemMessage x) == Nothing) xs
+      repeating x = take (numRepeat x) $ repeat x
+      numRepeat x = M.findWithDefault (сonfigNumberRepeat c)
+                                      (m_from_id (getVk_ItemMessage x)) d
+    
+eventBuildRequest :: Session -> Config -> String -> Request
+eventBuildRequest sess conf ts = setRequestQueryString qi $ parseRequest_ $ server sess
+            where
+                qi = [ ("act",  Just "a_check")
+                     , ("key",  Just (BC.pack $ key sess))
+                     , ("ts",   Just (BC.pack ts))
+                     , ("wait", Just (BC.pack $ show (myTimeout conf)))
+                     ]                                       

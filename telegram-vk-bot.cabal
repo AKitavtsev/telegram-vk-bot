@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9410e47c2c318740c273d4a34906a111c0013aa77a61c9a0455d1bcc89c25429
+-- hash: a86c9eae62ed6a42a0738d7957e42d19a3683f08c24de6f47348cda6d76af831
 
 name:           telegram-vk-bot
 version:        0.1.0.0
@@ -45,6 +45,7 @@ library
     , configurator
     , containers
     , hspec
+    , http-client
     , http-conduit
     , mtl
     , text
@@ -64,6 +65,7 @@ executable telegram-vk-bot-exe
     , configurator
     , containers
     , hspec
+    , http-client
     , http-conduit
     , mtl
     , telegram-vk-bot
@@ -74,6 +76,9 @@ test-suite telegram-vk-bot-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      MapRTest
+      TlTest
+      VKTest
       Paths_telegram_vk_bot
   hs-source-dirs:
       test
@@ -85,6 +90,7 @@ test-suite telegram-vk-bot-test
     , configurator
     , containers
     , hspec
+    , http-client
     , http-conduit
     , mtl
     , telegram-vk-bot
