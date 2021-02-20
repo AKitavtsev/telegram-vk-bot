@@ -7,6 +7,7 @@ module Telegram
 
 import Control.Monad.State    
 import Data.Aeson
+import Network.HTTP.Client
 import Network.HTTP.Simple
 
 import Config
@@ -91,8 +92,8 @@ buttonForMyKb = [InlineKeyboardButton {ikb_text = "1", ikb_callback_data = Just 
 myKeyboard :: InlineKeyboardMarkup
 myKeyboard = InlineKeyboardMarkup {inline_keyboard = [buttonForMyKb]}
             
-path ::  Config -> String -> BC.ByteString
-path conf meth = BC.pack $ сonfigToken conf ++ meth
+myPath ::  Config -> String -> BC.ByteString
+myPath conf meth = BC.pack $ сonfigToken conf ++ meth
                          
 newoffs :: [Update] -> Int
 newoffs [] = 0
@@ -159,7 +160,7 @@ fetchJSON conf meth qi = do
             
 buildRequest :: Config -> String -> [QueryItem] -> Request
 buildRequest conf p querys = setRequestHost appTelegram
-                        $ setRequestPath (path conf p)
+                        $ setRequestPath (myPath conf p)
                         $ setRequestQueryString querys
                         $ defaultRequest
 

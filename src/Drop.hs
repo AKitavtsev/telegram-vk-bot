@@ -27,4 +27,7 @@ toJsonDrop prefix = genericToJSON defaultOptions {
     fieldLabelModifier = drop prefix
   , omitNothingFields = True
   }
+  
+fromJust :: Maybe a  -> a
+fromJust ~ (Just x) = x  
 
