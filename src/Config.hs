@@ -11,7 +11,9 @@ import Data.Char
 import qualified Data.Configurator as C
 import qualified Data.Text as T
 
+import MapR
 
+-- Log------------------------------------------------------------------------
 data LoggLevel = DEBUG | INFO | WARN | ERROR |UNDEF deriving (Show, Eq, Ord)
 
 debugM :: LoggLevel -> String -> String -> IO ()
@@ -42,7 +44,7 @@ undefM :: LoggLevel -> String -> String -> IO ()
 undefM logg pref str = do
         putStrLn ("UNDEF  " ++ pref ++ str)
         return ()         
-        
+-- Config----------------------------------------------------------------------        
 data Config = Config {сonfigApi          :: !String
                      ,group_id           :: !String
                      ,сonfigToken        :: !String
@@ -73,9 +75,7 @@ getConfig = do
                         conf (T.pack "configBot.messageForRepeat") :: IO String
     messageForHelp <- C.lookupDefault "" 
                         conf (T.pack "configBot.messageForHelp") :: IO String
-    myTimeout <- C.lookupDefault 5 conf (T.pack "configBot.timeout") :: IO Int
-    
-    
+    myTimeout <- C.lookupDefault 5 conf (T.pack "configBot.timeout") :: IO Int    
     return (Config api group_id token loggLevel numberRepeat
                    messageForRepeat messageForHelp myTimeout)
         where
@@ -101,3 +101,6 @@ wrongToken _ = True
 vkWrongToken :: String -> Bool
 vkWrongToken xs = not (length xs == 85 && foldl f True xs)
     where  f = (\acc x -> (isDigit x || isLower x) && acc)
+-- other common functions------------------------------------------------------
+fromJust :: Maybe a  -> a
+fromJust ~ (Just x) = x

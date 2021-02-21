@@ -22,6 +22,5 @@ main  = do
     case сonfigApi conf of
         "telegram" -> loopTelegram conf M.empty 0
         "vk"       -> initSession conf
-        _          -> warnM (сonfigLogg conf) "--Unknown api."
-                                              " -- By default - telegram"
+        _          -> warnM (сonfigLogg conf) "-- Main   " "-- Unknown api. By default - telegram"
     loopTelegram conf{сonfigApi = "telegram"} M.empty 0

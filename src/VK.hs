@@ -6,6 +6,7 @@ import Control.Monad.State
 import Data.Aeson
 import Network.HTTP.Client
 import Network.HTTP.Simple
+import System.Exit
 
 import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy.Char8 as LBC
@@ -15,10 +16,16 @@ import Config
 import DataVK
 import MapR
 
+lVK = "-- loopVK "
 
 initSession :: Config -> IO ()
 initSession conf = do
     res <- httpLBS  $ initBuildRequest conf
+    let rsc = getResponseStatusCode res   
+    when ( not (rsc == 200)) $ do
+        errorM (сonfigLogg conf) "-- initSession  "
+                                       ("-- status code of response " ++ show rsc)
+        exitFailure
     let sessionJons = getResponseBody res
     let sessionR = (decode sessionJons) :: Maybe SessionResponse
     case sessionR of
@@ -29,58 +36,69 @@ initSession conf = do
         Nothing -> do 
             errorM (сonfigLogg conf) "-- initSession"
                                      " -- Wrong vkToken or group_id"
-            error "" 
+            exitFailure 
 
 loopVk :: Config -> MapInt -> String -> Session -> IO () 
 loopVk conf dict ts sess = do
-    debugM (сonfigLogg conf) "-- loopVK " ("ts = " ++ ts ++ 
-                                          "  dict = " ++ show dict)
-    res <- httpLBS  $ eventBuildRequest sess conf ts
+    debugM (сonfigLogg conf) lVK ("ts = " ++ ts ++ "  dict = " ++ show dict)
+    res' <- httpLBS  $ eventBuildRequest sess conf ts
+    res <- messageOK res'
+    
     let answerMaybe = (decode $ getResponseBody res) :: Maybe Answer
     when (answerMaybe == Nothing) $ do
-        warnM (сonfigLogg conf) "-- loopVk" " -- requesting new values key and ts"
+        warnM (сonfigLogg conf) lVK " -- requesting new values key and ts"
         initSession conf
     -- let answer = case answerMaybe of Just x  -> x
     let answer = fromJust answerMaybe
     when (a_ts answer == Nothing) $ do
-        warnM (сonfigLogg conf) "-- loopVk" " -- requesting new values key and ts"
+        warnM (сonfigLogg conf) lVK " -- requesting new values key and ts"
         initSession conf
     -- let newts = case a_ts answer of Just x -> x
-    let newts =  fromJust $ a_ts answer
-        -- events = case a_updates answer of Just x -> x    
-        events = fromJust $ a_updates answer    
-    debugM (сonfigLogg conf) "-- loopVK "
-          (" -- List of Updates received:\n" ++ show events)
+    -- let newts =  fromJust $ a_ts answer
+    -- let events = case a_updates answer of Just x -> x    
+    -- let events = fromJust $ a_updates answer    
+    debugM (сonfigLogg conf) lVK
+          (" -- List of Updates received:\n" ++ show (fromJust $ a_updates answer))
     let fc = forCopy (a_updates answer) conf dict
     mapM_ copyMessage fc
-    infoM (сonfigLogg conf) "-- loopVk" (" -- " ++ show (length fc) ++ 
-                                         " returns to addressees")          
+    infoM (сonfigLogg conf) lVK (" -- " ++ show (length fc) ++ " returns to addressees")          
     let fkb = forKb (a_updates answer)
     mapM_ sendMessageWithKeyboard fkb
-    infoM (сonfigLogg conf) "-- loopVk"
-                           (" -- " ++ show (length fkb)  ++
-                            " requests sent to change the number of retries")
+    infoM (сonfigLogg conf) lVK (" -- " ++ show (length fkb)  ++
+                                 " requests sent to change the number of retries")
     let fh = forHelp (a_updates answer) 
     mapM_ helpMessage fh
-    infoM (сonfigLogg conf) "-- loopVk"
-                           (" -- " ++ show (length fh) ++ " help")
+    infoM (сonfigLogg conf) lVK (" -- " ++ show (length fh) ++ " help")
     let lp = listUpdWithPayload (a_updates answer)
     let newdict = execState (mapChangeMapInt $ getUsidAndPayload lp) dict    
-    infoM (сonfigLogg conf) "-- loopVk"
-                           (" -- " ++ show (length lp) ++ 
-                            " change the number of retries")
-    loopVk conf newdict newts sess
+    infoM (сonfigLogg conf) lVK (" -- " ++ show (length lp) ++ 
+                                 " change the number of retries")
+    loopVk conf newdict (fromJust $ a_ts answer) sess
       where
+        -- copyMessage x =  do
+            -- messageOK (httpLBS  $ echoBuildRequest conf (getVk_ItemMessage x))
+        -- sendMessageWithKeyboard x = do
+            -- messageOK (httpLBS  $ kbBuildRequest conf dict (getVk_ItemMessage x))
+        -- helpMessage x =  do
+            -- messageOK (httpLBS  $ helpBuildRequest conf (getVk_ItemMessage x))
+            
         copyMessage x =  do
             res <- httpLBS  $ echoBuildRequest conf (getVk_ItemMessage x)
-            return (getResponseBody res)
+            messageOK res
         sendMessageWithKeyboard x = do
             res <- httpLBS  $ kbBuildRequest conf dict (getVk_ItemMessage x)
-            return (getResponseBody res)
+            messageOK res
         helpMessage x =  do
             res <- httpLBS  $ helpBuildRequest conf (getVk_ItemMessage x)
-            return (getResponseBody res)
-            
+            messageOK res
+        messageOK res = do
+            let rsc = getResponseStatusCode res
+            when ( not (rsc == 200)) $ do
+              errorM (сonfigLogg conf) "-- messageOK  "
+                                       ("-- status code of response " ++ show rsc)
+              exitFailure
+            return res
+                                  
 getVk_ItemMessage :: Event -> Vk_ItemMessage
 getVk_ItemMessage e = m_message $ e_object e
 
@@ -166,6 +184,4 @@ getUsidAndPayload xs = map fgets xs
       -- payload x = case m_payload (getVk_ItemMessage x) of
                                 -- Just y -> read y :: Int
       payload x = read $ fromJust $ m_payload $ getVk_ItemMessage x ::Int
-
-fromJust :: Maybe a  -> a
-fromJust ~ (Just x) = x                      
+                      
