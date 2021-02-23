@@ -7,7 +7,7 @@ module Telegram
 
 import Control.Monad.State    
 import Data.Aeson
-import Network.HTTP.Client
+-- import Network.HTTP.Client
 import Network.HTTP.Simple
 
 import Config

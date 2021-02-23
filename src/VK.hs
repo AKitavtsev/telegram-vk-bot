@@ -1,12 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module VK where
 
+import Control.Exception
 import Control.Monad.State
 import Data.Aeson
-import Network.HTTP.Client
+-- import Network.HTTP.Client
 import Network.HTTP.Simple
 import System.Exit
+import Control.Concurrent (threadDelay)
 
 import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy.Char8 as LBC
@@ -20,8 +23,11 @@ lVK = "-- loopVK "
 
 initSession :: Config -> IO ()
 initSession conf = do
-    res <- httpLBS  $ initBuildRequest conf
-    let rsc = getResponseStatusCode res   
+    -- res <- httpLBS  $ initBuildRequest conf
+    resEither <- try (httpLBS  $ initBuildRequest conf)
+                 -- :: IO (Either SomeException (Response LBC.ByteString))
+    res <- testException resEither conf
+    let rsc = getResponseStatusCode res
     when ( not (rsc == 200)) $ do
         errorM (сonfigLogg conf) "-- initSession  "
                                        ("-- status code of response " ++ show rsc)
@@ -30,33 +36,43 @@ initSession conf = do
     let sessionR = (decode sessionJons) :: Maybe SessionResponse
     case sessionR of
         (Just (Vk_Response x)) -> do
-            infoM (сonfigLogg conf) "initialized session with parameters:\n"
+            infoM (сonfigLogg conf) "-- initialized session with parameters:\n"
                                     $ show x
             loopVk conf M.empty (ts x) x
         Nothing -> do 
             errorM (сonfigLogg conf) "-- initSession"
                                      " -- Wrong vkToken or group_id"
-            exitFailure 
-
+            exitFailure
+    where
+      -- fromEither :: (Either SomeException (Response LBC.ByteString))
+                 -- -> Config
+                 -- ->  IO (Response LBC.ByteString)
+      -- fromEither rese conf = do 
+        -- case rese of
+            -- Right val -> return val
+            -- Left ex   -> do 
+                -- errorM  (сonfigLogg conf) "-- Connection Failure" 
+                                          -- "-- Trying to initialize the session"
+                -- threadDelay 25000000
+                -- initSession conf
+                -- httpLBS  $ initBuildRequest conf
+        
 loopVk :: Config -> MapInt -> String -> Session -> IO () 
 loopVk conf dict ts sess = do
     debugM (сonfigLogg conf) lVK ("ts = " ++ ts ++ "  dict = " ++ show dict)
-    res' <- httpLBS  $ eventBuildRequest sess conf ts
+    resEither <- try (httpLBS  $ eventBuildRequest sess conf ts)
+                     -- :: IO (Either SomeException (Response LBC.ByteString))
+    res' <- testException resEither conf
     res <- messageOK res'
     
     let answerMaybe = (decode $ getResponseBody res) :: Maybe Answer
     when (answerMaybe == Nothing) $ do
         warnM (сonfigLogg conf) lVK " -- requesting new values key and ts"
         initSession conf
-    -- let answer = case answerMaybe of Just x  -> x
     let answer = fromJust answerMaybe
     when (a_ts answer == Nothing) $ do
         warnM (сonfigLogg conf) lVK " -- requesting new values key and ts"
         initSession conf
-    -- let newts = case a_ts answer of Just x -> x
-    -- let newts =  fromJust $ a_ts answer
-    -- let events = case a_updates answer of Just x -> x    
-    -- let events = fromJust $ a_updates answer    
     debugM (сonfigLogg conf) lVK
           (" -- List of Updates received:\n" ++ show (fromJust $ a_updates answer))
     let fc = forCopy (a_updates answer) conf dict
@@ -75,21 +91,20 @@ loopVk conf dict ts sess = do
                                  " change the number of retries")
     loopVk conf newdict (fromJust $ a_ts answer) sess
       where
-        -- copyMessage x =  do
-            -- messageOK (httpLBS  $ echoBuildRequest conf (getVk_ItemMessage x))
-        -- sendMessageWithKeyboard x = do
-            -- messageOK (httpLBS  $ kbBuildRequest conf dict (getVk_ItemMessage x))
-        -- helpMessage x =  do
-            -- messageOK (httpLBS  $ helpBuildRequest conf (getVk_ItemMessage x))
-            
         copyMessage x =  do
             res <- httpLBS  $ echoBuildRequest conf (getVk_ItemMessage x)
+            -- resEither <- try (httpLBS  $ echoBuildRequest conf (getVk_ItemMessage x))
+            -- res <- testException resEither conf
             messageOK res
         sendMessageWithKeyboard x = do
             res <- httpLBS  $ kbBuildRequest conf dict (getVk_ItemMessage x)
+            -- resEither <- try (httpLBS  $ kbBuildRequest conf dict (getVk_ItemMessage x))
+            -- res <- testException resEither conf
             messageOK res
         helpMessage x =  do
             res <- httpLBS  $ helpBuildRequest conf (getVk_ItemMessage x)
+            -- resEither <- try (httpLBS  $ helpBuildRequest conf (getVk_ItemMessage x))
+            -- res <- testException resEither conf
             messageOK res
         messageOK res = do
             let rsc = getResponseStatusCode res
@@ -181,7 +196,19 @@ getUsidAndPayload :: [Event] -> [(Int, Int)]
 getUsidAndPayload xs = map fgets xs 
     where 
       fgets x = ((m_from_id (getVk_ItemMessage x)), (payload x))
-      -- payload x = case m_payload (getVk_ItemMessage x) of
-                                -- Just y -> read y :: Int
       payload x = read $ fromJust $ m_payload $ getVk_ItemMessage x ::Int
-                      
+      
+testException :: (Either SomeException (Response LBC.ByteString))
+              -> Config
+              ->  IO (Response LBC.ByteString)
+
+testException rese conf = do 
+    case rese of
+        Right val -> return val
+        Left ex   -> do 
+            errorM  (сonfigLogg conf) "-- Connection Failure" 
+                                          "-- Trying to initialize the session"
+            threadDelay 25000000
+            initSession conf
+            httpLBS  $ initBuildRequest conf 
+           
