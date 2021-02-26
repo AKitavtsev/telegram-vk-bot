@@ -22,13 +22,13 @@ import Drop
 appTelegram :: BC.ByteString
 appTelegram = "api.telegram.org"
 
-data Response a = Response
+data Tl_Response a = Tl_Response
   {
     result     :: a
   } deriving (Show, Generic, FromJSON)
 
   
-type UpdatesResponse = Response [Update]
+type UpdatesResponse = Tl_Response [Update]
 
 data Update = Update
   { update_id            :: Int   

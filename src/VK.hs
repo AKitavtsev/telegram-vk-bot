@@ -63,8 +63,7 @@ loopVk conf dict ts sess = do
     resEither <- try (httpLBS  $ eventBuildRequest sess conf ts)
                      -- :: IO (Either SomeException (Response LBC.ByteString))
     res' <- testException resEither conf
-    res <- messageOK res'
-    
+    res  <- messageOK res'    
     let answerMaybe = (decode $ getResponseBody res) :: Maybe Answer
     when (answerMaybe == Nothing) $ do
         warnM (сonfigLogg conf) lVK " -- requesting new values key and ts"
@@ -77,7 +76,7 @@ loopVk conf dict ts sess = do
           (" -- List of Updates received:\n" ++ show (fromJust $ a_updates answer))
     let fc = forCopy (a_updates answer) conf dict
     mapM_ copyMessage fc
-    infoM (сonfigLogg conf) lVK (" -- " ++ show (length fc) ++ " returns to addressees")          
+    infoM (сonfigLogg conf) lVK (" -- " ++ show (length fc) ++ " returns to addressees")
     let fkb = forKb (a_updates answer)
     mapM_ sendMessageWithKeyboard fkb
     infoM (сonfigLogg conf) lVK (" -- " ++ show (length fkb)  ++
@@ -201,7 +200,6 @@ getUsidAndPayload xs = map fgets xs
 testException :: (Either SomeException (Response LBC.ByteString))
               -> Config
               ->  IO (Response LBC.ByteString)
-
 testException rese conf = do 
     case rese of
         Right val -> return val
