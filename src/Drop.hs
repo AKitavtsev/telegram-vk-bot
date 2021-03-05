@@ -31,3 +31,9 @@ toJsonDrop prefix = genericToJSON defaultOptions {
 fromJust :: Maybe a  -> a
 fromJust ~ (Just x) = x  
 
+data Session = Session
+    { key :: String
+    , server :: String
+    , ts :: String
+    } deriving (FromJSON, Show, Generic)
+    

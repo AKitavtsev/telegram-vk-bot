@@ -7,6 +7,7 @@ module Config
 import Control.Monad (when)
 import Data.List (all)
 import Data.Char
+import System.Exit
  
 import qualified Data.Configurator as C
 import qualified Data.Text as T
@@ -84,14 +85,17 @@ getConfig = do
             when (wrongToken token) $ do
               errorM loggLevel " -- token for telegram should look like:\n "
                         "bot1509893058:AAD3uC_cmyxDQJfBZtQgs2E4-K55xivO8Wc"
+            exitFailure
             return token
           getToken conf "vk" loggLevel = do
             token <- C.lookupDefault "" conf (T.pack "configBot.vkToken") :: IO String
             when (vkWrongToken token) $ do
               errorM loggLevel " -- token for vk should look like:\n "                "f471666483f81526e052c193223df886e08x1de38a7b823d4614ec44f3z680ffce51f29f177d3s6be664y"
+            exitFailure
             return token
           getToken _ _ loggLevel = do
-            errorM loggLevel "-- config" " -- api should be telegran or vk"
+            errorM loggLevel "-- config" " -- api should be telegram or vk"
+            exitFailure
             return ""
             
 wrongToken :: String -> Bool

@@ -4,8 +4,7 @@
 {-# LANGUAGE RankNTypes  #-}
 {-# LANGUAGE FlexibleContexts  #-}
 
-module DataVK
-  where
+module DataVK where
 
 import           Data.Aeson
 import           Data.Aeson.Types
@@ -27,13 +26,6 @@ data Vk_Response a = Vk_Response
   } deriving (Show, Generic, FromJSON)
    
 type SessionResponse = Vk_Response Session
-
-data Session = Session
-    { key :: String
-    , server :: String
-    , ts :: String
-    } deriving (FromJSON, Show, Generic)
-    
 
 data Answer = Answer
     { a_ts :: Maybe String
