@@ -17,6 +17,7 @@ import Bot
 import Config
 import DataTelegram
 import Drop
+import Log
 import MapR
 
 import qualified Data.ByteString.Char8 as BC
@@ -28,14 +29,17 @@ import qualified Data.Text as T
 {- | Trying to get another Update. Processing. We go to the next. 
 -- Parameters - сonfig, dict and offset
 -}
-newHandle :: Config -> IO Bot.Handle
-newHandle conf = do
+newHandle :: Config -> Log.Handle-> IO Bot.Handle
+newHandle conf handl = do
     return $ Bot.Handle
-        {Bot.conf = conf 
-        ,Bot.initSession = \handle -> do
-            return (Session "" "" "0")
+        {Bot.conf = conf
+        ,Bot.handlerLog = handl        
+        ,Bot.initSession = initSession
         }
-        
+        where 
+          initSession handle = do
+            return (Session "" "" "0")       
+
 -- loopTelegram ::  Config -> MapInt -> Int -> IO ()
 -- loopTelegram  conf dict offs = do
     -- debugM (сonfigLogg conf) "-- loopTelegram"

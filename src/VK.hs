@@ -18,38 +18,45 @@ import qualified Data.Map as M
 import Bot
 import Config
 import DataVK
+import Log
 import MapR
 
 
 lVK = "-- loopVK "
 
-newHandle :: Config -> IO Bot.Handle
-newHandle conf = do
+newHandle :: Config -> Log.Handle-> IO Bot.Handle
+newHandle conf handl = do
     return $ Bot.Handle
-        {Bot.conf = conf 
-        ,Bot.initSession = \handle -> do
-            resEither <- try (httpLBS  $ initBuildRequest $ Bot.conf handle)
-                 :: IO (Either SomeException (Response LBC.ByteString))
+        {Bot.conf = conf
+        ,Bot.handlerLog = handl
+        ,Bot.initSession = initSession
+        }
+        where 
+          initSession handle = do
+            let conf = Bot.conf handle
+                logLevel = сonfigLogg conf
+                errM = errorM $ handlerLog handle
+                infM = infoM $ handlerLog handle
+            resEither <- try (httpLBS  $ initBuildRequest conf)
+                 -- :: IO (Either SomeException (Response LBC.ByteString))
             res <- testException resEither handle
             let rsc = getResponseStatusCode res
             when ( not (rsc == 200)) $ do
-                errorM (сonfigLogg $ Bot.conf handle) "-- initSession  "
-                                       ("-- status code of response " ++ show rsc)
+                errM logLevel "-- initSession  "
+                             ("-- status code of response " ++ show rsc)
                 exitFailure
             let sessionJons = getResponseBody res
             let sessionR = (decode sessionJons) :: Maybe SessionResponse
             case sessionR of
                 (Just (Vk_Response x)) -> do
-                    infoM (сonfigLogg $ Bot.conf handle) 
-                          "-- initialized session with parameters:\n"
-                          $ show x
-                    return x
+                     infM logLevel "-- initialized session with parameters:\n"
+                                   $ show x
+                     return x
             -- loopVk conf M.empty (ts x) x
                 Nothing -> do 
-                    errorM (сonfigLogg $ Bot.conf handle) "-- initSession"
-                                     " -- Wrong vkToken or group_id"
+                    errM logLevel "-- initSession"
+                                  " -- Wrong vkToken or group_id"
                     exitFailure
-        }
 -- loopVk :: Config -> MapInt -> String -> Session -> IO () 
 -- loopVk conf dict ts sess = do
     -- debugM (сonfigLogg conf) lVK ("ts = " ++ ts ++ "  dict = " ++ show dict)
@@ -190,15 +197,15 @@ initBuildRequest  conf = setRequestQueryString qi
       -- fgets x = ((m_from_id (getVk_ItemMessage x)), (payload x))
       -- payload x = read $ fromJust $ m_payload $ getVk_ItemMessage x ::Int
       
--- testException :: (Either SomeException (Response LBC.ByteString))
-              -- -> Config
-              -- ->  IO (Response LBC.ByteString)
+testException :: (Either SomeException (Response LBC.ByteString))
+              ->  Bot.Handle
+              ->  IO (Response LBC.ByteString)
 testException rese handle = do
     case rese of
         Right val -> return val
         Left ex   -> do 
-            errorM  (сonfigLogg $ Bot.conf handle) "-- Connection Failure" 
-                                          "-- Trying to initialize the session"
+            -- errorM  (сonfigLogg $ Bot.conf handle) "-- Connection Failure" 
+                                          -- "-- Trying to initialize the session"
             threadDelay 25000000
             (initSession handle) handle
             -- initSession conf

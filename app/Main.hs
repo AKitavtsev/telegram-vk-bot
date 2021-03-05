@@ -10,6 +10,8 @@ import Config
 import Telegram 
 import VK
 import Bot
+import Log
+import Logger
 
 import qualified Data.Configurator as C
 import qualified Data.Text as T
@@ -17,12 +19,14 @@ import qualified Data.Text as T
 
 main :: IO ()
 main  = do
-    conf <- getConfig
-    debugM (сonfigLogg conf) "--main" 
+    handleLog <- Logger.newHandle
+    -- let debugM = Log.debugM handleL
+    conf <- getConfig handleLog
+    (Log.debugM handleLog) (сonfigLogg conf) "--main" 
                             (" -- configuration file bot.conf read:\n" ++ show conf)
     handle <- case сonfigApi conf of
-        "vk"       -> VK.newHandle conf
-        _          -> Telegram.newHandle conf
+        "vk"       -> VK.newHandle conf handleLog
+        _          -> Telegram.newHandle conf handleLog
         
     sess <- (initSession handle) handle
     

@@ -1,14 +1,16 @@
 module Bot
     where
 
-import DataVK
+-- import DataVK
 import Drop
 import Config
+import Log
 
 -- import MapR
 
 data Handle = Handle
     { conf :: Config
-    , initSession :: Handle -> IO Session
+    , handlerLog :: Log.Handle
+    , initSession :: Bot.Handle -> IO Session
     }
     
