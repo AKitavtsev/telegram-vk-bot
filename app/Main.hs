@@ -2,9 +2,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Main where
- 
--- import Control.Monad (when)
--- import qualified Data.Map as M
 
 import Config
 import Telegram 
@@ -13,6 +10,7 @@ import Bot
 import Log
 import Logger
 
+import qualified Data.Map as M
 import qualified Data.Configurator as C
 import qualified Data.Text as T
 
@@ -28,8 +26,8 @@ main  = do
         "vk"       -> VK.newHandle conf handleLog
         _          -> Telegram.newHandle conf handleLog
         
-    sess <- (initSession handle) handle
+    sess <- (initSession handle) handle    
+    loopBot handle sess M.empty
     
-    
-    print sess
+
     

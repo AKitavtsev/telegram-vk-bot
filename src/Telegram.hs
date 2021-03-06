@@ -32,7 +32,7 @@ import qualified Data.Text as T
 newHandle :: Config -> Log.Handle-> IO Bot.Handle
 newHandle conf handl = do
     return $ Bot.Handle
-        {Bot.conf = conf
+        {Bot.config = conf
         ,Bot.handlerLog = handl        
         ,Bot.initSession = initSession
         }

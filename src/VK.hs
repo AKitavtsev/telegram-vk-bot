@@ -16,24 +16,24 @@ import qualified Data.ByteString.Lazy.Char8 as LBC
 import qualified Data.Map as M
 
 import Bot
+import Drop
 import Config
 import DataVK
 import Log
 import MapR
 
 
-lVK = "-- loopVK "
-
 newHandle :: Config -> Log.Handle-> IO Bot.Handle
 newHandle conf handl = do
     return $ Bot.Handle
-        {Bot.conf = conf
+        {Bot.config = conf
         ,Bot.handlerLog = handl
         ,Bot.initSession = initSession
+        ,Bot.getUpdates = getUpdates
         }
         where 
           initSession handle = do
-            let conf = Bot.conf handle
+            let conf = Bot.config handle
                 logLevel = сonfigLogg conf
                 errM = errorM $ handlerLog handle
                 infM = infoM $ handlerLog handle
@@ -52,11 +52,32 @@ newHandle conf handl = do
                      infM logLevel "-- initialized session with parameters:\n"
                                    $ show x
                      return x
-            -- loopVk conf M.empty (ts x) x
                 Nothing -> do 
                     errM logLevel "-- initSession"
                                   " -- Wrong vkToken or group_id"
                     exitFailure
+                    
+          -- getUpdates :: Log.Handle -> Config -> Session -> IO [UPD]
+          getUpdates  handlog conf sess = do
+            res' <- httpLBS  $ eventBuildRequest sess conf
+            -- res' <- testException resEither handlog
+            res  <- messageOK res' conf handlog  
+            let answerMaybe = (decode $ getResponseBody res) :: Maybe Answer
+            -- when (answerMaybe == Nothing) $ do
+              -- (warnM handlog) (сonfigLogg conf) "-- getUpdates"
+                                                -- " -- requesting new values key and ts"
+              -- initSession conf
+            let answer = fromJust answerMaybe
+            -- when (a_ts answer == Nothing) $ do
+              -- (warnM handlog) (сonfigLogg conf) "-- getUpdates"
+                                                -- " -- requesting new values key and ts"
+              -- initSession conf
+            let upds = fromJust $ a_updates answer
+            (debugM handlog) (сonfigLogg conf) "-- getUpdates"
+                                             (" -- List of Updates received:\n" ++ 
+                                               (show upds))
+            return (VK upds)
+        
 -- loopVk :: Config -> MapInt -> String -> Session -> IO () 
 -- loopVk conf dict ts sess = do
     -- debugM (сonfigLogg conf) lVK ("ts = " ++ ts ++ "  dict = " ++ show dict)
@@ -105,13 +126,13 @@ newHandle conf handl = do
 -- !            resEither <- try (httpLBS  $ helpBuildRequest conf (getVk_ItemMessage x))
  -- !           res <- testException resEither conf
             -- messageOK res
-        -- messageOK res = do
-            -- let rsc = getResponseStatusCode res
-            -- when ( not (rsc == 200)) $ do
-              -- errorM (сonfigLogg conf) "-- messageOK  "
-                                       -- ("-- status code of response " ++ show rsc)
-              -- exitFailure
-            -- return res
+messageOK res conf handl = do
+            let rsc = getResponseStatusCode res
+            when ( not (rsc == 200)) $ do
+              (errorM handl) (сonfigLogg conf) "-- messageOK  "
+                                       ("-- status code of response " ++ show rsc)
+              exitFailure
+            return res
                                   
 -- getVk_ItemMessage :: Event -> Vk_ItemMessage
 -- getVk_ItemMessage e = m_message $ e_object e
@@ -145,13 +166,13 @@ initBuildRequest  conf = setRequestQueryString qi
            , ("access_token",   Just (BC.pack $ сonfigToken conf))
            , ("v",              Just "5.126")]
           
--- eventBuildRequest :: Session -> Config -> String -> Request
--- eventBuildRequest sess conf ts = setRequestQueryString qi $ parseRequest_ $ server sess
-    -- where
-      -- qi = [ ("act",  Just "a_check")
-           -- , ("key",  Just (BC.pack $ key sess))
-           -- , ("ts",   Just (BC.pack ts))
-           -- , ("wait", Just (BC.pack $ show (myTimeout conf)))]
+eventBuildRequest :: Session -> Config -> Request
+eventBuildRequest sess conf = setRequestQueryString qi $ parseRequest_ $ server sess
+    where
+      qi = [ ("act",  Just "a_check")
+           , ("key",  Just (BC.pack $ key sess))
+           , ("ts",   Just (BC.pack $ ts sess))
+           , ("wait", Just (BC.pack $ show (myTimeout conf)))]
 
 -- echoBuildRequest :: Config -> Vk_ItemMessage -> Request
 -- echoBuildRequest conf event = setRequestQueryString qi $ parseRequest_  appVK
@@ -209,5 +230,5 @@ testException rese handle = do
             threadDelay 25000000
             (initSession handle) handle
             -- initSession conf
-            httpLBS  $ initBuildRequest $ Bot.conf handle
+            httpLBS  $ initBuildRequest $ Bot.config handle
            

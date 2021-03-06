@@ -24,7 +24,7 @@ newHandle = do
                 putStrLn ("ERROR  " ++ pref ++ "   " ++ str)
                 return ()
          , Log.undefM = \logg pref str  -> do
-                putStrLn ("UNDEF  " ++ pref ++ str)
+                putStrLn ("UNDEF  " ++ pref ++ "   " ++ str)
                 return ()
          }
          
