@@ -26,13 +26,17 @@ import MapR
 newHandle :: Config -> Log.Handle-> IO Bot.Handle
 newHandle conf handl = do
     return $ Bot.Handle
-        {Bot.config = conf
-        ,Bot.handlerLog = handl
-        ,Bot.initSession = initSession
-        ,Bot.getUpdates = getUpdates
+        {Bot.config      = conf
+        ,Bot.handlerLog  = handl
+        ,Bot.initSession = initSessionVk
+        ,Bot.getUpdates  = getUpdatesVk
+        ,Bot.forCopy     = forCopyVk
+        ,Bot.forHelp     = forHelpVk
+        ,Bot.forKb       = forKbVk
+        ,listUpdWithKey  = listUpdWithKeyVk
         }
         where 
-          initSession handle = do
+          initSessionVk handle = do
             let conf = Bot.config handle
                 logLevel = сonfigLogg conf
                 errM = errorM $ handlerLog handle
@@ -49,35 +53,54 @@ newHandle conf handl = do
             let sessionR = (decode sessionJons) :: Maybe SessionResponse
             case sessionR of
                 (Just (Vk_Response x)) -> do
-                     infM logLevel "-- initialized session with parameters:\n"
+                    infM logLevel "-- initialized session with parameters:\n"
                                    $ show x
-                     return x
+                    loopBot handle x M.empty
+                    -- return x
                 Nothing -> do 
                     errM logLevel "-- initSession"
                                   " -- Wrong vkToken or group_id"
                     exitFailure
                     
-          -- getUpdates :: Log.Handle -> Config -> Session -> IO [UPD]
-          getUpdates  handlog conf sess = do
-            res' <- httpLBS  $ eventBuildRequest sess conf
-            -- res' <- testException resEither handlog
+          getUpdatesVk  handle sess = do
+            let conf = Bot.config handle
+                logLevel = сonfigLogg conf
+                handlog = handlerLog handle
+            resEither <- try (httpLBS  $ eventBuildRequest sess conf)
+            res' <- testException resEither handle
             res  <- messageOK res' conf handlog  
             let answerMaybe = (decode $ getResponseBody res) :: Maybe Answer
-            -- when (answerMaybe == Nothing) $ do
-              -- (warnM handlog) (сonfigLogg conf) "-- getUpdates"
-                                                -- " -- requesting new values key and ts"
-              -- initSession conf
+            when (answerMaybe == Nothing) $ do
+              (warnM handlog) logLevel "-- getUpdates"
+                                       " -- requesting new values key and ts"
+              (initSession handle) handle
             let answer = fromJust answerMaybe
-            -- when (a_ts answer == Nothing) $ do
-              -- (warnM handlog) (сonfigLogg conf) "-- getUpdates"
-                                                -- " -- requesting new values key and ts"
-              -- initSession conf
+            when (a_ts answer == Nothing) $ do
+              (warnM handlog) logLevel "-- getUpdates"
+                                       " -- requesting new values key and ts"
+              (initSession handle) handle
             let upds = fromJust $ a_updates answer
-            (debugM handlog) (сonfigLogg conf) "-- getUpdates"
-                                             (" -- List of Updates received:\n" ++ 
+            (debugM handlog) logLevel "-- getUpdates"
+                                     (" -- List of Updates received:\n" ++ 
                                                (show upds))
-            return (VK upds)
-        
+            return (map VK upds)
+          
+          forCopyVk xs handle dict = map VK $ concat (map repeating (filtred xs))
+            where 
+              filtred xs = filter (\(VK x) -> (not 
+                (m_text (getVk_ItemMessage x) == "/repeat" ||
+                 m_text (getVk_ItemMessage x) == "/help")) && 
+                 m_payload (getVk_ItemMessage x) == Nothing) xs
+              repeating (VK x) = take (numRepeat x) $ repeat x
+              numRepeat x = M.findWithDefault (сonfigNumberRepeat $ config handle)
+                                              (m_from_id (getVk_ItemMessage x)) dict
+          forHelpVk xs = 
+            filter (\(VK x) -> (m_text (getVk_ItemMessage x) == "/help")) xs
+          forKbVk xs = 
+            filter (\(VK x) -> (m_text (getVk_ItemMessage x) == "/repeat")) xs 
+          listUpdWithKeyVk xs = 
+            filter (\(VK x) -> not (m_payload (getVk_ItemMessage x) == Nothing)) xs
+          
 -- loopVk :: Config -> MapInt -> String -> Session -> IO () 
 -- loopVk conf dict ts sess = do
     -- debugM (сonfigLogg conf) lVK ("ts = " ++ ts ++ "  dict = " ++ show dict)
@@ -113,7 +136,7 @@ newHandle conf handl = do
       -- where
         -- copyMessage x =  do
             -- res <- httpLBS  $ echoBuildRequest conf (getVk_ItemMessage x)
-           -- ! resEither <- try (httpLBS  $ echoBuildRequest conf (getVk_ItemMessage x))
+            -- !resEither <- try (httpLBS  $ echoBuildRequest conf (getVk_ItemMessage x))
             -- !res <- testException resEither conf
             -- messageOK res
         -- sendMessageWithKeyboard x = do
@@ -134,8 +157,8 @@ messageOK res conf handl = do
               exitFailure
             return res
                                   
--- getVk_ItemMessage :: Event -> Vk_ItemMessage
--- getVk_ItemMessage e = m_message $ e_object e
+getVk_ItemMessage :: Event -> Vk_ItemMessage
+getVk_ItemMessage e = m_message $ e_object e
 
 -- listUpdWithPayload :: Maybe [Event] -> [Event]
 -- listUpdWithPayload ~ (Just e) = 
@@ -225,10 +248,9 @@ testException rese handle = do
     case rese of
         Right val -> return val
         Left ex   -> do 
-            -- errorM  (сonfigLogg $ Bot.conf handle) "-- Connection Failure" 
-                                          -- "-- Trying to initialize the session"
+            (errorM  $ handlerLog handle) (сonfigLogg $ config handle)
+                "-- Connection Failure" "-- Trying to initialize the session"
             threadDelay 25000000
             (initSession handle) handle
-            -- initSession conf
             httpLBS  $ initBuildRequest $ Bot.config handle
            

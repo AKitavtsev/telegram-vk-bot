@@ -34,11 +34,11 @@ newHandle conf handl = do
     return $ Bot.Handle
         {Bot.config = conf
         ,Bot.handlerLog = handl        
-        ,Bot.initSession = initSession
+        -- ,Bot.initSession = initSession
         }
-        where 
-          initSession handle = do
-            return (Session "" "" "0")       
+        -- where 
+          -- initSession handle = do
+            -- return (Session "" "" "0")     
 
 -- loopTelegram ::  Config -> MapInt -> Int -> IO ()
 -- loopTelegram  conf dict offs = do

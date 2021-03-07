@@ -75,6 +75,3 @@ wrongToken _ = True
 vkWrongToken :: String -> Bool
 vkWrongToken xs = not (length xs == 85 && foldl f True xs)
     where  f = (\acc x -> (isDigit x || isLower x) && acc)
--- other common functions------------------------------------------------------
--- fromJust :: Maybe a  -> a
--- fromJust ~ (Just x) = x

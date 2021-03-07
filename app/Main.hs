@@ -18,7 +18,6 @@ import qualified Data.Text as T
 main :: IO ()
 main  = do
     handleLog <- Logger.newHandle
-    -- let debugM = Log.debugM handleL
     conf <- getConfig handleLog
     (Log.debugM handleLog) (сonfigLogg conf) "--main" 
                             (" -- configuration file bot.conf read:\n" ++ show conf)
@@ -26,8 +25,7 @@ main  = do
         "vk"       -> VK.newHandle conf handleLog
         _          -> Telegram.newHandle conf handleLog
         
-    sess <- (initSession handle) handle    
-    loopBot handle sess M.empty
+    (initSession handle) handle
     
 
     
