@@ -26,22 +26,25 @@ import MapR
 newHandle :: Config -> Log.Handle-> IO Bot.Handle
 newHandle conf handl = do
     return $ Bot.Handle
-        {Bot.config      = conf
-        ,Bot.handlerLog  = handl
-        ,Bot.initSession = initSessionVk
-        ,Bot.getUpdates  = getUpdatesVk
-        ,Bot.forCopy     = forCopyVk
-        ,Bot.forHelp     = forHelpVk
-        ,Bot.forKb       = forKbVk
-        ,listUpdWithKey  = listUpdWithKeyVk
+        { Bot.config           = conf
+        , Bot.handlerLog       = handl
+        , Bot.initSession      = initSessionVk
+        , Bot.getUpdates       = getUpdatesVk
+        , Bot.forCopy          = forCopyVk
+        , Bot.forHelp          = forHelpVk
+        , Bot.forKb            = forKbVk
+        , listUpdWithKey       = listUpdWithKeyVk
+        , copyMessage          = copyMessageVk
+        , sendMessWithKeyboard = sendMessWithKeyboardVk
+        , helpMessage          = helpMessageVK
+        , getUserAndNumRep     = getUserAndNumRepVk   
         }
         where 
           initSessionVk handle = do
-            let conf = Bot.config handle
-                logLevel = сonfigLogg conf
-                errM = errorM $ handlerLog handle
-                infM = infoM $ handlerLog handle
-            resEither <- try (httpLBS  $ initBuildRequest conf)
+            let logLevel = сonfigLogg conf
+                errM = errorM handl
+                infM = infoM handl
+            resEither <- try (httpLBS  $ initBuildRequest)
                  -- :: IO (Either SomeException (Response LBC.ByteString))
             res <- testException resEither handle
             let rsc = getResponseStatusCode res
@@ -56,17 +59,23 @@ newHandle conf handl = do
                     infM logLevel "-- initialized session with parameters:\n"
                                    $ show x
                     loopBot handle x M.empty
-                    -- return x
+                    return ()
                 Nothing -> do 
                     errM logLevel "-- initSession"
                                   " -- Wrong vkToken or group_id"
                     exitFailure
+              where
+                initBuildRequest  = setRequestQueryString qi
+                  $ parseRequest_ "https://api.vk.com/method/groups.getLongPollServer"
+
+                qi = [ ("group_id",       Just (BC.pack $ group_id conf))
+                     , ("access_token",   Just (BC.pack $ сonfigToken conf))
+                     , ("v",              Just "5.126")]
                     
-          getUpdatesVk  handle sess = do
-            let conf = Bot.config handle
-                logLevel = сonfigLogg conf
+          getUpdatesVk handle sess = do
+            let logLevel = сonfigLogg conf
                 handlog = handlerLog handle
-            resEither <- try (httpLBS  $ eventBuildRequest sess conf)
+            resEither <- try (httpLBS  $ eventBuildRequest sess)
             res' <- testException resEither handle
             res  <- messageOK res' conf handlog  
             let answerMaybe = (decode $ getResponseBody res) :: Maybe Answer
@@ -84,7 +93,14 @@ newHandle conf handl = do
                                      (" -- List of Updates received:\n" ++ 
                                                (show upds))
             return (map VK upds)
-          
+              where
+                eventBuildRequest sess = setRequestQueryString qi
+                                         $ parseRequest_ $ server sess
+                qi = [ ("act",  Just "a_check")
+                     , ("key",  Just (BC.pack $ key sess))
+                     , ("ts",   Just (BC.pack $ ts sess))
+                     , ("wait", Just (BC.pack $ show (myTimeout conf)))]
+         
           forCopyVk xs handle dict = map VK $ concat (map repeating (filtred xs))
             where 
               filtred xs = filter (\(VK x) -> (not 
@@ -100,7 +116,53 @@ newHandle conf handl = do
             filter (\(VK x) -> (m_text (getVk_ItemMessage x) == "/repeat")) xs 
           listUpdWithKeyVk xs = 
             filter (\(VK x) -> not (m_payload (getVk_ItemMessage x) == Nothing)) xs
-          
+
+          copyMessageVk (VK x) =  httpLBS  $ echoBuildRequest event
+            where
+              event = getVk_ItemMessage x
+              echoBuildRequest event = 
+                        setRequestQueryString qi $ parseRequest_ appVK
+              qi = [ ("user_id",          Just (BC.pack $ show (m_from_id event)))
+                   , ("forward_messages", Just (BC.pack $ show (m_id event)))
+                   , ("random_id",        Just (BC.pack $ show (m_random_id event)))
+                   , ("access_token",     Just (BC.pack $ сonfigToken conf))
+                   , ("v",                Just "5.126")]
+
+          sendMessWithKeyboardVk dict (VK x) = httpLBS  $ kbBuildRequest dict event
+            where
+              event = getVk_ItemMessage x
+              kbBuildRequest dict event = setRequestQueryString qi
+                     $ parseRequest_ appVK 
+              qi = [ ("user_id",      Just (BC.pack $ show (m_from_id event)))
+                   , ("random_id",    Just (BC.pack $ show (m_random_id event))) 
+                   , ("message",      Just (BC.pack $ textForRepeat (m_from_id event)))
+                   , ("keyboard",     Just (BC.pack $ LBC.unpack $ encode myKeyboard))
+                   , ("access_token", Just (BC.pack $ сonfigToken conf))
+                   , ("v",            Just "5.126")]
+              buttonsForMyKb = [ Button (Action "text" "1" "1") "primary"
+                   , Button (Action "text" "2" "2") "primary"
+                   , Button (Action "text" "3" "3") "primary"
+                   , Button (Action "text" "4" "4") "primary"
+                   , Button (Action "text" "5" "5") "primary"]
+              myKeyboard =  Keyboard  [buttonsForMyKb] True False
+              textForRepeat x = (show $ M.findWithDefault
+                                (сonfigNumberRepeat conf) x dict)
+                                 ++ (messageForRepeat conf)
+          helpMessageVK (VK x) = httpLBS  $ helpBuildRequest event
+            where
+              event = getVk_ItemMessage x
+              helpBuildRequest event = setRequestQueryString qi $ parseRequest_ appVK
+              qi = [ ("user_id",          Just (BC.pack $ show (m_from_id event)))
+                   , ("random_id",        Just (BC.pack $ show (m_random_id event))) 
+                   , ("message",          Just (BC.pack $ messageForHelp conf))
+                   , ("access_token",     Just (BC.pack $ сonfigToken conf))
+                   , ("v",                Just "5.126")]             
+          getUserAndNumRepVk :: [UPD] -> [(Int, Int)]
+          getUserAndNumRepVk xs = map fgets xs 
+            where
+              fgets (VK x) = ((m_from_id $ getVk_ItemMessage x), (payload x))
+              payload x = read $ fromJust $ m_payload $ getVk_ItemMessage x ::Int  
+                
 -- loopVk :: Config -> MapInt -> String -> Session -> IO () 
 -- loopVk conf dict ts sess = do
     -- debugM (сonfigLogg conf) lVK ("ts = " ++ ts ++ "  dict = " ++ show dict)
@@ -181,21 +243,21 @@ getVk_ItemMessage e = m_message $ e_object e
       -- numRepeat x = M.findWithDefault (сonfigNumberRepeat c)
                                       -- (m_from_id (getVk_ItemMessage x)) d
 
-initBuildRequest :: Config -> Request
-initBuildRequest  conf = setRequestQueryString qi
-      $ parseRequest_ "https://api.vk.com/method/groups.getLongPollServer"
-    where
-      qi = [ ("group_id",       Just (BC.pack $ group_id conf))
-           , ("access_token",   Just (BC.pack $ сonfigToken conf))
-           , ("v",              Just "5.126")]
+-- initBuildRequest :: Config -> Request
+-- initBuildRequest  conf = setRequestQueryString qi
+      -- $ parseRequest_ "https://api.vk.com/method/groups.getLongPollServer"
+    -- where
+      -- qi = [ ("group_id",       Just (BC.pack $ group_id conf))
+           -- , ("access_token",   Just (BC.pack $ сonfigToken conf))
+           -- , ("v",              Just "5.126")]
           
-eventBuildRequest :: Session -> Config -> Request
-eventBuildRequest sess conf = setRequestQueryString qi $ parseRequest_ $ server sess
-    where
-      qi = [ ("act",  Just "a_check")
-           , ("key",  Just (BC.pack $ key sess))
-           , ("ts",   Just (BC.pack $ ts sess))
-           , ("wait", Just (BC.pack $ show (myTimeout conf)))]
+-- eventBuildRequest :: Session -> Config -> Request
+-- eventBuildRequest sess conf = setRequestQueryString qi $ parseRequest_ $ server sess
+    -- where
+      -- qi = [ ("act",  Just "a_check")
+           -- , ("key",  Just (BC.pack $ key sess))
+           -- , ("ts",   Just (BC.pack $ ts sess))
+           -- , ("wait", Just (BC.pack $ show (myTimeout conf)))]
 
 -- echoBuildRequest :: Config -> Vk_ItemMessage -> Request
 -- echoBuildRequest conf event = setRequestQueryString qi $ parseRequest_  appVK
@@ -252,5 +314,5 @@ testException rese handle = do
                 "-- Connection Failure" "-- Trying to initialize the session"
             threadDelay 25000000
             (initSession handle) handle
-            httpLBS  $ initBuildRequest $ Bot.config handle
+            httpLBS  $ parseRequest_ "https://api.vk.com/method/groups.getLongPollServer"
            

@@ -1,6 +1,9 @@
 module Bot
     where
 
+import qualified Data.ByteString.Lazy.Char8 as LBC
+import Network.HTTP.Simple
+import Control.Monad.State
 
 import Drop
 import Config
@@ -19,6 +22,10 @@ data Handle = Handle
     , forHelp        :: [UPD] -> [UPD]
     , forKb          :: [UPD] -> [UPD]
     , listUpdWithKey :: [UPD] -> [UPD]
+    , copyMessage    :: UPD -> IO (Response LBC.ByteString)
+    , sendMessWithKeyboard :: MapInt -> UPD -> IO (Response LBC.ByteString)
+    , helpMessage    :: UPD -> IO (Response LBC.ByteString)
+    , getUserAndNumRep :: [UPD] -> [(Int, Int)]
     }
     
 data UPD = Tl Update | VK Event deriving (Show)
@@ -31,7 +38,12 @@ loopBot handle sess dict = do
     upds <- (getUpdates handle) handle sess
     
     print upds
-    print $ (forCopy handle) upds handle dict
+    mapM_ (copyMessage handle) ((forCopy handle) upds handle dict)
+    mapM_ ((sendMessWithKeyboard handle) dict) ((forKb handle) upds)
+    mapM_ (helpMessage handle) ((forHelp handle) upds)
+    let lp = (listUpdWithKey handle) upds
+        newdict = execState (mapChangeMapInt $ (getUserAndNumRep handle) lp) dict
+    print ((forCopy handle) upds handle dict)
     print $ (forHelp handle) upds
     print $ (forKb handle) upds
     print $ (listUpdWithKey handle) upds
