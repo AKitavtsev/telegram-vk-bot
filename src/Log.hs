@@ -1,12 +1,6 @@
 module Log
     where
 
--- import DataVK
--- import Drop
--- import Config
-
--- import MapR
-
 data LoggLevel = DEBUG | INFO | WARN | ERROR |UNDEF deriving (Show, Eq, Ord)
 
 data Handle = Handle

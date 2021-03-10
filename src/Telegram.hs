@@ -15,7 +15,7 @@ import Control.Concurrent (threadDelay)
 
 import Bot
 import Config
-import DataTelegram
+import Telegram.Data
 import Drop
 import Log
 import MapR

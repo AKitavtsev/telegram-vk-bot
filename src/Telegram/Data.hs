@@ -4,7 +4,7 @@
 {-# LANGUAGE RankNTypes  #-}
 {-# LANGUAGE FlexibleContexts  #-}
 
-module DataTelegram
+module Telegram.Data
   where
 
 import  Data.Aeson
