@@ -17,17 +17,13 @@ data Handle = Handle
     , handlerLog     :: Log.Handle
     , initSession    :: Bot.Handle -> IO ()
     , getUpdates     :: Bot.Handle -> Session -> String -> IO ([UPD], String)
-    -- , forCopy        :: [UPD] -> Bot.Handle -> MapInt -> [UPD]
-    , forHelp        :: [UPD] -> [UPD]
-    , forKb          :: [UPD] -> [UPD]
-    , listUpdWithKey :: [UPD] -> [UPD]
     , copyMessages   :: [UPD] -> MapInt -> IO ()
     , sendMessWithKeyboard :: MapInt -> UPD -> IO (Response LBC.ByteString)
     , helpMessage    :: UPD -> IO (Response LBC.ByteString)
     , getUserAndNumRep :: [UPD] -> [(Int, Int)]
     }
     
-data UPD = Tl Update | VK Event deriving (Show)
+data UPD = Tl Update | VK Event deriving (Show, Eq)
     
 loopBot :: Bot.Handle -> Session -> MapInt -> String -> IO ()
 loopBot handle sess dict ts = do
@@ -38,11 +34,11 @@ loopBot handle sess dict ts = do
     (upds, newts) <- (getUpdates handle) handle sess ts    
     -- mapM_ (copyMessage handle) ((forCopy handle) upds handle dict)
     (copyMessages handle) upds dict
-    mapM_ ((sendMessWithKeyboard handle) dict) ((forKb handle) upds)
-    mapM_ (helpMessage handle) ((forHelp handle) upds)
-    let lp = (listUpdWithKey handle) upds
-        newdict = execState (mapChangeMapInt $ (getUserAndNumRep handle) lp) dict
-    loopBot handle sess newdict newts
+    -- mapM_ ((sendMessWithKeyboard handle) dict) ((forKb handle) upds)
+    -- mapM_ (helpMessage handle) ((forHelp handle) upds)
+    -- let lp = (listUpdWithKey handle) upds
+        -- newdict = execState (mapChangeMapInt $ (getUserAndNumRep handle) lp) dict
+    loopBot handle sess dict newts
 
     
     

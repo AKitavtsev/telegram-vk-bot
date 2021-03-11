@@ -4,13 +4,13 @@
 
 module  Main where
 
-import TlTest
+-- import TlTest
 import VKTest
 import MapRTest
 
 main :: IO ()
 main = do
-    mapRTest
-    tlTest
+    -- mapRTest
+   -- tlTest
     vkTest
     
