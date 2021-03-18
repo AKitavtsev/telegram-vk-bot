@@ -32,8 +32,8 @@ fromJust :: Maybe a  -> a
 fromJust ~ (Just x) = x  
 
 data Session = Session
-    { key :: String
+    { key    :: String
     , server :: String
-    , ts :: String
+    , ts     :: String
     } deriving (FromJSON, Show, Generic)
     

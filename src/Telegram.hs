@@ -26,9 +26,6 @@ import qualified Data.Map as M
 import qualified Data.Text as T
 
 
-{- | Trying to get another Update. Processing. We go to the next. 
--- Parameters - сonfig, dict and offset
--}
 newHandle :: Config -> Log.Handle-> IO Bot.Handle
 newHandle conf handl = do
     return $ Bot.Handle
