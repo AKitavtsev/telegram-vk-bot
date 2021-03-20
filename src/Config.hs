@@ -2,7 +2,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Config
-    where
+    ( Config (..)
+    , getConfig 
+    )
+        where
 
 import Control.Monad (when)
 import Data.List (all)

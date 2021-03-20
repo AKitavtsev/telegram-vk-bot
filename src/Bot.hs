@@ -1,8 +1,8 @@
 module Bot
-    -- ( Bot.Handle
-    -- , Tl, VK, UPD
-    -- , loopBot
-    -- )
+    ( Handle (..)
+    , UPD (..)
+    , loopBot
+    )
         where
 
 import qualified Data.ByteString.Lazy.Char8 as LBC
@@ -11,10 +11,11 @@ import Control.Monad.State
 
 import Drop
 import Config
-import Log as Log
 import MapR
 import Telegram.Data
 import VK.Data
+
+import qualified Log
 
 data Handle = Handle
     { config               :: Config
@@ -33,7 +34,7 @@ data UPD = Tl Update| VK Event  deriving (Show, Eq)
 loopBot :: Bot.Handle -> Session -> MapInt -> String -> IO ()
 loopBot handle sess dict ts = do
     let logLevel = сonfigLogg $ config handle 
-        debM     = (debugM $ handlerLog handle) logLevel
+        debM     = (Log.debugM $ handlerLog handle) logLevel
         titleM   = "-- Bot.loopBot"
     debM titleM ("ts = " ++ ts ++ "  dict = " ++ show dict)
     (upds, newts) <- (getUpdates handle) handle sess ts    

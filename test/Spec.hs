@@ -10,7 +10,7 @@ import MapRTest
 
 main :: IO ()
 main = do
-    -- mapRTest
+    mapRTest
    -- tlTest
     vkTest
     

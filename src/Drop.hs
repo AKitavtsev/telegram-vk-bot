@@ -29,7 +29,7 @@ toJsonDrop prefix = genericToJSON defaultOptions {
   }
   
 fromJust :: Maybe a  -> a
-fromJust ~ (Just x) = x  
+fromJust ~ (Just x) = x
 
 data Session = Session
     { key    :: String

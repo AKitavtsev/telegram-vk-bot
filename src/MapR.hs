@@ -1,7 +1,7 @@
 module MapR
-    -- (MapInt
-    -- ,mapChangeMapInt
-    -- ) 
+    (MapInt
+    ,changeMapInt
+    )
     where
 
 import Control.Monad.State
@@ -16,7 +16,5 @@ changeMapInt (k, v) = do
     let dict' = M.delete k dict
     put (M.insert k v dict')
     
-mapChangeMapInt :: [(Int, Int)] -> State MapInt ()
-mapChangeMapInt xs = mapM_ changeMapInt xs
 
 

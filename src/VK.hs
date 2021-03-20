@@ -1,8 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module VK (newHandle)
-   
+module VK (newHandle)  
   where
 
 import Control.Exception
@@ -99,11 +98,11 @@ newHandle conf handl = do
                 let event = getVk_ItemMessage x
                 infM "-- helpMessage" (" to user " ++ (show $ m_from_id event))
                 httpLBS  $ helpBuildRequest conf event
-          newDictVK upds dict = execState ( mapChangeMapInt
+          newDictVK upds dict = execState ( mapM_ changeMapInt
                                           $ getUserAndNumRep
                                           $ listUpdWithKey upds) dict
 messageOK :: (Response LBC.ByteString)
-          -> Config 
+          -> Config
           -> Log.Handle
           -> IO (Response LBC.ByteString)        
 messageOK res conf handl = do

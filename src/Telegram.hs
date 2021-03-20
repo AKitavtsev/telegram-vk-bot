@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Telegram 
--- (loopTelegram)
+
     where
 
 import Control.Exception
