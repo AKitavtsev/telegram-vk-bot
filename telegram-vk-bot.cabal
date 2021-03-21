@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c80dd1a83d8eb18fd6c661f3e6f15c565c72f122dd9f047a77bb2b9e48d74e05
+-- hash: bb1c1168a933065733d2b2dea042fd8184595693ecb752f6cc403e44016847c7
 
 name:           telegram-vk-bot
 version:        0.1.0.0
@@ -35,6 +35,7 @@ library
       MapR
       Telegram
       Telegram.Data
+      Telegram.Internal
       VK
       VK.Data
       VK.Internal
