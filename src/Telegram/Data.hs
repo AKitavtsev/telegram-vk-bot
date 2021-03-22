@@ -47,7 +47,6 @@ data CallbackQuery = CallbackQuery
   {
     cq_id                :: Text
   , cq_from              :: User
-
   , cq_data              :: Maybe String
   } deriving (Show, Eq, Generic)
   

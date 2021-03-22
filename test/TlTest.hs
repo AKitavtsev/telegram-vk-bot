@@ -12,6 +12,7 @@ import qualified Data.Map as M
 
 import Bot
 import Config
+import Drop
 import Log
 import MapR
 import Telegram.Data
@@ -26,19 +27,11 @@ tlTest = hspec $ do
       upCallbackQuery = Update 146878330
                 Nothing
                 (Just (CallbackQuery "2079577882558908621" 
-                      (User 484189457 False "Андрей")  (Just "333")))
+                      (User 484189457 False "Андрей")  (Just "3")))
       uPDR = Tl (Update 146878330 (Just mess {text = (Just "/repeat")}) Nothing)
       uPDН = Tl (Update 146878330 (Just mess {text = (Just "/help")}) Nothing)
-      conf = Config "" "123" "456" DEBUG 1 "" "Help me!" 25
-
--- vkIM = Vk_ItemMessage 1 0 2 "1" Nothing
-        -- event =   (Event "message_new" (Vk_Message vkIM) 123456789)
-        -- eventR = VK (event {e_object = (Vk_Message (vkIM {m_text = "/repeat"}))})
-        -- eventH = VK (event {e_object = (Vk_Message (vkIM {m_text = "/help"}))})
-        -- eventP = VK (event {e_object = (Vk_Message (vkIM {m_payload = Just "2"}))}) 
-        -- conf = Config "" "123" "456" DEBUG 1 "" "Help me!" 25
-        -- sess = Session "1fb"
-                       -- "https://lp.vk.com/wh202551745" "1000"
+      conf = Config "" "123" "456" DEBUG 1 "RepeatMe" "Help me!" 25
+      sess = Session "" "" "0"
 
   describe "Telegram.Internal" $ do
       describe "newoffs" $ do
@@ -57,8 +50,7 @@ tlTest = hspec $ do
           mesId upMessage `shouldBe` 261
       describe "cbData" $ do
         it "returns data from CallbackQuery" $
-          cbData upCallbackQuery `shouldBe` "333"
-          
+          cbData upCallbackQuery `shouldBe` "3"         
       describe "forKb" $ do
         it "queries with command /repeat" $ 
           forKb [Tl upMessage, uPDR, uPDН, Tl upCallbackQuery] `shouldBe` [uPDR]
@@ -76,8 +68,43 @@ tlTest = hspec $ do
         it "all other requests including retries from the dictionary" $
           forCopy [Tl upMessage, uPDR, uPDН, Tl upCallbackQuery] 
                   conf (M.fromList [(484189456,2)])
-                    `shouldBe` [Tl upMessage, Tl upMessage]
-
-     -- return ()      
-
-
+                    `shouldBe` [Tl upMessage, Tl upMessage]     
+      describe "eventBuildRequest" $ do
+        it "returns host" $
+          host  (eventBuildRequest sess conf "999") `shouldBe` appTelegram
+        it "returns path" $
+          path  (eventBuildRequest sess conf "999") `shouldBe` "456/getUpdates"
+        it "returns queryString" $
+          queryString  (eventBuildRequest sess conf "999") `shouldBe` 
+               "?offset=999&timeout=25"
+      describe "echoBuildRequest" $ do
+        it "returns host" $
+          host  (echoBuildRequest conf upMessage) `shouldBe` appTelegram
+        it "returns path" $
+          path  (echoBuildRequest conf upMessage) `shouldBe` "456/copyMessage"
+        it "returns queryString" $
+          queryString  (echoBuildRequest conf upMessage) `shouldBe`
+                "?chat_id=484189456&from_chat_id=484189456&message_id=261"                
+      describe "helpBuildRequest" $ do
+        it "returns host" $
+          host  (helpBuildRequest conf upMessage) `shouldBe` appTelegram
+        it "returns path" $
+          path  (helpBuildRequest conf upMessage) `shouldBe` "456/sendMessage"
+        it "returns queryString" $
+          queryString  (helpBuildRequest conf upMessage) `shouldBe`
+               "?chat_id=484189456&text=Help%20me%21"              
+      describe "kbBuildRequest" $ do
+        it "returns host" $
+          host  (kbBuildRequest conf M.empty upCallbackQuery) `shouldBe` appTelegram
+        it "returns path" $
+          path  (kbBuildRequest conf M.empty upCallbackQuery) `shouldBe` "456/sendMessage"
+        it "returns queryString with number retries from the config" $
+          queryString  (kbBuildRequest conf (M.fromList [(1,2)]) upCallbackQuery) `shouldBe`
+            "?chat_id=484189457&text=1RepeatMe&reply_markup=%7B%22inline_keyboard%22%3A%5B%5B%7B%22text%22%3A%221%22%2C%22callback_data%22%3A%221%22%7D%2C%7B%22text%22%3A%222%22%2C%22callback_data%22%3A%222%22%7D%2C%7B%22text%22%3A%223%22%2C%22callback_data%22%3A%223%22%7D%2C%7B%22text%22%3A%224%22%2C%22callback_data%22%3A%224%22%7D%2C%7B%22text%22%3A%225%22%2C%22callback_data%22%3A%225%22%7D%5D%5D%7D"
+        it "returns queryString with number retries from the dictionary" $
+          queryString  (kbBuildRequest conf M.empty upCallbackQuery) `shouldBe`
+            "?chat_id=484189457&text=1RepeatMe&reply_markup=%7B%22inline_keyboard%22%3A%5B%5B%7B%22text%22%3A%221%22%2C%22callback_data%22%3A%221%22%7D%2C%7B%22text%22%3A%222%22%2C%22callback_data%22%3A%222%22%7D%2C%7B%22text%22%3A%223%22%2C%22callback_data%22%3A%223%22%7D%2C%7B%22text%22%3A%224%22%2C%22callback_data%22%3A%224%22%7D%2C%7B%22text%22%3A%225%22%2C%22callback_data%22%3A%225%22%7D%5D%5D%7D"
+ 
+      describe "getUserAndNumRep" $ do
+        it "returns [(User Id, number retries)]" $
+               getUserAndNumRep [Tl upCallbackQuery] `shouldBe` [(484189457, 3)]
