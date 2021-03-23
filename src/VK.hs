@@ -29,6 +29,10 @@ newHandle conf handl = do
     return $ Bot.Handle
         { config               = conf
         , handlerLog           = handl
+        , session              = Session "" "" "0"
+        , dictionary           = M.empty
+        , offset               = "0"
+        , updates              = []
         , initSession          = initSessionVK
         , getUpdates           = getUpdatesVk
         , copyMessages         = copyMessagesVk
@@ -36,13 +40,13 @@ newHandle conf handl = do
         , sendMessagesWithHelp = sendMessagesWithHelpVK
         , newDict              = newDictVK  
         }
-        where
+        where 
           logLevel = сonfigLogg conf
           debM = (debugM handl) logLevel
           infM = (infoM handl) logLevel
           warM = (warnM handl) logLevel
           errM = (errorM handl) logLevel
-          initSessionVK handle = do
+          initSessionVK handle = do            
             let titleM = "-- VK.initSession" 
             resEither <- try (httpLBS  $ initBuildRequest conf)
                  -- :: IO (Either SomeException (Response LBC.ByteString))
@@ -56,15 +60,17 @@ newHandle conf handl = do
             case sessionR of
                 (Just (Vk_Response x)) -> do
                     debM titleM
-                         ("-- initialized session with parameters:\n" ++ (show x))
-                    loopBot handle x M.empty $ ts x
+                         ("-- initialized session with parameters:\n" ++ (show x)) 
+                    loopBot (handle {session = x,  offset = ts x})
                     return ()
                 Nothing -> do 
                     errM titleM " -- Wrong vkToken or group_id"
                     exitFailure                    
-          getUpdatesVk handle sess ts = do  
+          getUpdatesVk handle = do  
             let titleM  = "-- VK.getUpdates" 
                 handlog = handlerLog handle
+                sess = session handle
+                ts = offset handle
             resEither <- try (httpLBS  $ eventBuildRequest sess conf ts)
             res' <- testException resEither handle
             res  <- messageOK res' conf handlog  
@@ -79,28 +85,44 @@ newHandle conf handl = do
             let upds = fromJust $ a_updates answer
                 newts = fromJust $ a_ts answer
             debM titleM (" List of Updates received = \n " ++ (show upds))
-            return (map VK upds, newts)
-          copyMessagesVk upds dict = mapM_ copyMessage $ forCopy upds conf dict
-            where 
+            return handle {offset = newts, updates = map VK upds}
+          copyMessagesVk handle = do 
+            mapM_ copyMessage $ forCopy upds conf dict
+            return handle
+            where
+              upds = updates handle
+              dict = dictionary handle
               copyMessage (VK x) =  do
                 let event = getVk_ItemMessage x
                 infM "-- VK.copyMessage" (" to user " ++ (show $ m_from_id event))
                 httpLBS  $ echoBuildRequest conf event
-          sendMessagesWithKbVK upds dict = mapM_ sendMessageWithKb $ forKb upds
+          sendMessagesWithKbVK handle = do
+            mapM_ sendMessageWithKb $ forKb upds
+            return handle
             where
+              upds = updates handle
+              dict = dictionary handle
               sendMessageWithKb (VK x) = do
                 let event = getVk_ItemMessage x
                 infM "-- VK.sendMessageWithKb" (" to user " ++ (show $ m_from_id event))
                 httpLBS  $ kbBuildRequest conf dict event
-          sendMessagesWithHelpVK upds = mapM_ sendMessageWithHelp $ forHelp upds
+          sendMessagesWithHelpVK handle  = do
+            mapM_ sendMessageWithHelp $ forHelp upds
+            return handle
             where
+              upds = updates handle
               sendMessageWithHelp (VK x) = do
                 let event = getVk_ItemMessage x
-                infM "-- helpMessage" (" to user " ++ (show $ m_from_id event))
+                infM "-- VK.sendMessageWithHelp" (" to user " ++ (show $ m_from_id event))
                 httpLBS  $ helpBuildRequest conf event
-          newDictVK upds dict = execState ( mapM_ changeMapInt
-                                          $ getUserAndNumRep
-                                          $ listUpdWithKey upds) dict
+          newDictVK handle = do
+            let upds = updates handle
+                dict = dictionary handle
+                newdict = execState ( mapM_ changeMapInt
+                                     $ getUserAndNumRep
+                                     $ listUpdWithKey upds) dict
+            return handle {dictionary = newdict}
+                                          
 messageOK :: (Response LBC.ByteString)
           -> Config
           -> Log.Handle

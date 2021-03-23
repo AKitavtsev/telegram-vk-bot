@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Bot
     ( Handle (..)
     , UPD (..)
@@ -20,25 +22,28 @@ import qualified Log
 data Handle = Handle
     { config               :: Config
     , handlerLog           :: Log.Handle
+    , session              :: Session
+    , dictionary           :: MapInt
+    , offset               :: String
+    , updates              :: [UPD]
     , initSession          :: Bot.Handle -> IO ()
-    , getUpdates           :: Bot.Handle -> Session -> String -> IO ([UPD], String)
-    , copyMessages         :: [UPD] -> MapInt -> IO ()
-    , sendMessagesWithKb   :: [UPD] -> MapInt -> IO ()
-    , sendMessagesWithHelp :: [UPD] -> IO ()
-    , newDict              :: [UPD] -> MapInt -> MapInt
+    , getUpdates           :: Bot.Handle -> IO Bot.Handle
+    , copyMessages         :: Bot.Handle -> IO Bot.Handle
+    , sendMessagesWithKb   :: Bot.Handle -> IO Bot.Handle
+    , sendMessagesWithHelp :: Bot.Handle -> IO Bot.Handle
+    , newDict              :: Bot.Handle -> IO Bot.Handle
     }
 
 
 data UPD = Tl Update| VK Event  deriving (Show, Eq)
     
-loopBot :: Bot.Handle -> Session -> MapInt -> String -> IO ()
-loopBot handle sess dict ts = do
-    let logLevel = сonfigLogg $ config handle 
-        debM     = (Log.debugM $ handlerLog handle) logLevel
-        titleM   = "-- Bot.loopBot"
-    debM titleM ("ts = " ++ ts ++ "  dict = " ++ show dict)
-    (upds, newts) <- (getUpdates handle) handle sess ts    
-    (copyMessages handle) upds dict
-    (sendMessagesWithKb handle) upds dict
-    (sendMessagesWithHelp handle) upds
-    loopBot handle sess ((newDict handle) upds dict) newts
+loopBot :: Bot.Handle -> IO Bot.Handle
+loopBot handle = return handle               >>=
+                 getUpdates handle           >>=
+                 copyMessages handle         >>=
+                 sendMessagesWithKb handle   >>= 
+                 sendMessagesWithHelp handle >>=
+                 newDict handle              >>=
+                 loopBot
+                
+
