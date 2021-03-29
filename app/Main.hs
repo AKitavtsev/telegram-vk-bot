@@ -23,7 +23,7 @@ main  = do
                             (" -- configuration file bot.conf read:\n" ++ show conf)
     handle <- case сonfigApi conf of
         "vk"       -> VK.newHandle conf handleLog
-        -- _          -> Telegram.newHandle conf handleLog
+        _          -> Telegram.newHandle conf handleLog
         
     (initSession handle) handle
     
