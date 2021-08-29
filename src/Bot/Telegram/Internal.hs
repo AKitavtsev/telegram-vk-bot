@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Telegram.Internal where
+module Bot.Telegram.Internal where
 
 import Network.HTTP.Simple
 
@@ -11,10 +11,10 @@ import qualified Data.Map as M
 import qualified Data.Text as T
 
 import Bot
-import Config
-import Telegram.Data
-import MapR
 import Drop
+import MapR
+import Servises.Config
+import Bot.Telegram.Data
 
 forCopy :: [UPD] -> Config -> MapInt -> [UPD]
 forCopy xs conf dict = map Tl $ concat (map repeating (filtred $ listUpdWithMessage xs))

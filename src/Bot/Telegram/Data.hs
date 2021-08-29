@@ -4,7 +4,7 @@
 {-# LANGUAGE RankNTypes  #-}
 {-# LANGUAGE FlexibleContexts  #-}
 
-module Telegram.Data
+module Bot.Telegram.Data
   where
 
 import  Data.Aeson
@@ -12,7 +12,6 @@ import  Data.Aeson.Types
 import  GHC.Generics
 import  Data.List
 import  Data.Text                    (Text)
-import  GHC.Generics
 
 import qualified Data.ByteString.Char8 as BC
 

@@ -4,7 +4,7 @@
 {-# LANGUAGE RankNTypes  #-}
 {-# LANGUAGE FlexibleContexts  #-}
 
-module VK.Data where
+module Bot.VK.Data where
 
 import           Data.Aeson
 import           Data.Aeson.Types

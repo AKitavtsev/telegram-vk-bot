@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module VK.Internal where
+module Bot.VK.Internal where
 
 import Network.HTTP.Simple
 
@@ -10,10 +10,10 @@ import qualified Data.ByteString.Lazy.Char8 as LBC
 import qualified Data.Map as M
 
 import Bot
-import Config
-import VK.Data
-import MapR
 import Drop
+import MapR
+import Servises.Config
+import Bot.VK.Data
 
 forCopy :: [UPD] -> Config -> MapInt -> [UPD]
 forCopy xs conf dict = map VK $ concat (map repeating (filtred xs))

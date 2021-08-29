@@ -3,29 +3,28 @@
 
 module Main where
 
-import Config
-import Telegram 
-import VK
+import Servises.Config
+import Servises.Logger
+import Bot.Telegram 
+import Bot.VK
 import Bot
-import Log
-import Logger
 
-import qualified Data.Map as M
-import qualified Data.Configurator as C
-import qualified Data.Text as T
-
+import qualified Servises.Impl.Configurator as SC
+import qualified Servises.Impl.StdOut as SL
 
 main :: IO ()
 main  = do
-    handleLog <- Logger.newHandle
-    conf <- getConfig handleLog
-    (Log.debugM handleLog) (сonfigLogg conf) "--main" 
-                            (" -- configuration file bot.conf read:\n" ++ show conf)
-    handle <- case сonfigApi conf of
-        "vk"       -> VK.newHandle conf handleLog
-        _          -> Telegram.newHandle conf handleLog
-        
-    (initSession handle) handle
-    
+  hConfig <- SC.newHandle
+  logConf <- getLogConfig hConfig
+  botConf <- getBotConfig hConfig
 
+  hLogger <- SL.newHandle logConf
+  logDebug hLogger (" -- configuration file bot.conf read:\n"
+                   ++ show logConf ++ "\n" ++ show botConf) 
+
+
+  handle <- case сonfigApi botConf of
+        "vk"       -> Bot.VK.newHandle botConf
+        _          -> Bot.Telegram.newHandle botConf       
+  (initSession handle) handle hLogger
     

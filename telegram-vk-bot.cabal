@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: bb1c1168a933065733d2b2dea042fd8184595693ecb752f6cc403e44016847c7
+-- hash: 2b4b6c0e853fa229e1479b89b3248aa0030abba97794cc4e57374ecf5fd533bd
 
 name:           telegram-vk-bot
 version:        0.1.0.0
@@ -28,17 +28,19 @@ source-repository head
 library
   exposed-modules:
       Bot
-      Config
+      Bot.Telegram
+      Bot.Telegram.Data
+      Bot.Telegram.Internal
+      Bot.VK
+      Bot.VK.Data
+      Bot.VK.Internal
       Drop
-      Log
-      Logger
       MapR
-      Telegram
-      Telegram.Data
-      Telegram.Internal
-      VK
-      VK.Data
-      VK.Internal
+      Servises.Config
+      Servises.Data
+      Servises.Impl.Configurator
+      Servises.Impl.StdOut
+      Servises.Logger
   other-modules:
       Paths_telegram_vk_bot
   hs-source-dirs:
