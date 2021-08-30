@@ -2,7 +2,7 @@ module Servises.Impl.StdOut
   ( newHandle
   ) where
 
-
+--
 import Servises.Data (Priority(..))
 
 import qualified Servises.Config as SC

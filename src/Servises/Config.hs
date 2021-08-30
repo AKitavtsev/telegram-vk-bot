@@ -1,6 +1,7 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
+--
 module Servises.Config
   ( Handle(..)
   , ForModule(..)
@@ -22,10 +23,10 @@ newtype Handle =
     }
 
 data Config
-  =  LogConfig
+  = LogConfig
       { level :: !Priority
       }
-  |  BotConfig
+  | BotConfig
       { сonfigApi :: !String
       , group_id :: !String
       , сonfigToken :: !String
@@ -37,7 +38,6 @@ data Config
   deriving (Show)
 
 getLogConfig, getBotConfig :: Handle -> IO Config
-
 getLogConfig = (`getConfig` LOG)
 
 getBotConfig = (`getConfig` BOT)

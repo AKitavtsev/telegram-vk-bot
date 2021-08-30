@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2b4b6c0e853fa229e1479b89b3248aa0030abba97794cc4e57374ecf5fd533bd
+-- hash: c3fa2ef53220806b0789590567db12de005b5ba8e08aeb0c1c5b0bddf3be3403
 
 name:           telegram-vk-bot
 version:        0.1.0.0
@@ -64,7 +64,7 @@ executable telegram-vk-bot-exe
       Paths_telegram_vk_bot
   hs-source-dirs:
       app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Werror -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
     , base >=4.7 && <5

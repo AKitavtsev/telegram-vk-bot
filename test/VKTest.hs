@@ -6,43 +6,42 @@ module  VKTest where
 
 import Network.HTTP.Simple
 import Test.Hspec
--- import Control.Monad.State
 import Network.HTTP.Client.Internal
 
 import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy.Char8 as LBC
 import qualified Data.Map as M
 
-import Config
-import VK.Data
+import Servises.Config
+import Bot.VK.Data
 import MapR
-import VK
+import Bot.VK
 import Drop
-import Log
+import Servises.Logger
 import Bot
-import VK.Internal
+import Bot.VK.Internal
 
 
 vkTest :: IO ()
 vkTest = hspec $ do
-    let vkIM = Vk_ItemMessage 1 0 2 "1" Nothing
-        event =   (Event "message_new" (Vk_Message vkIM) 123456789)
-        eventR = VK (event {e_object = (Vk_Message (vkIM {m_text = "/repeat"}))})
-        eventH = VK (event {e_object = (Vk_Message (vkIM {m_text = "/help"}))})
-        eventP = VK (event {e_object = (Vk_Message (vkIM {m_payload = Just "2"}))}) 
-        conf = Config "" "123" "456" DEBUG 1 "" "Help me!" 25
+    let vkIM = VKItemMessage 1 0 2 "1" Nothing
+        event =   (Event "message_new" (VKMessage vkIM) 123456789)
+        eventR = VK (event {e_object = (VKMessage (vkIM {m_text = "/repeat"}))})
+        eventH = VK (event {e_object = (VKMessage (vkIM {m_text = "/help"}))})
+        eventP = VK (event {e_object = (VKMessage (vkIM {m_payload = Just "2"}))}) 
+        conf = BotConfig "" "123" "456" 1 "" "Help me!" 25
         sess = Session "1fb"
                        "https://lp.vk.com/wh202551745" "1000"
     describe "VK.Internal" $ do                  
-        describe "getVk_ItemMessage" $ do
+        describe "getVkItemMessage" $ do
             it "get message" $ 
-              getVk_ItemMessage event `shouldBe` vkIM
+              getVkItemMessage event `shouldBe` vkIM
             it "get from_id" $ 
-              m_from_id  (getVk_ItemMessage event) `shouldBe` 1
+              m_from_id  (getVkItemMessage event) `shouldBe` 1
             it "get text" $ 
-              m_text  (getVk_ItemMessage event) `shouldBe` "1"
+              m_text  (getVkItemMessage event) `shouldBe` "1"
             it "get payload" $ 
-              m_payload  (getVk_ItemMessage event) `shouldBe` Nothing
+              m_payload  (getVkItemMessage event) `shouldBe` Nothing
         describe "forKb" $ do
             it "queries with command /repeat" $ 
               forKb [(VK event), eventR, eventH, eventP] `shouldBe` [eventR]

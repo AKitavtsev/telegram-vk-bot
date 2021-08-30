@@ -11,12 +11,12 @@ import Network.HTTP.Client.Internal
 import qualified Data.Map as M
 
 import Bot
-import Config
+import Servises.Config
 import Drop
-import Log
+import Servises.Logger
 import MapR
-import Telegram.Data
-import Telegram.Internal
+import Bot.Telegram.Data
+import Bot.Telegram.Internal
 
 
 tlTest :: IO ()
@@ -30,7 +30,7 @@ tlTest = hspec $ do
                       (User 484189457 False "Андрей")  (Just "3")))
       uPDR = Tl (Update 146878330 (Just mess {text = (Just "/repeat")}) Nothing)
       uPDН = Tl (Update 146878330 (Just mess {text = (Just "/help")}) Nothing)
-      conf = Config "" "123" "456" DEBUG 1 "RepeatMe" "Help me!" 25
+      conf = BotConfig "" "123" "456"  1 "RepeatMe" "Help me!" 25
       sess = Session "" "" "0"
 
   describe "Telegram.Internal" $ do
@@ -71,11 +71,11 @@ tlTest = hspec $ do
                     `shouldBe` [Tl upMessage, Tl upMessage]     
       describe "eventBuildRequest" $ do
         it "returns host" $
-          host  (eventBuildRequest sess conf "999") `shouldBe` appTelegram
+          host  (eventBuildRequest conf "999") `shouldBe` appTelegram
         it "returns path" $
-          path  (eventBuildRequest sess conf "999") `shouldBe` "456/getUpdates"
+          path  (eventBuildRequest conf "999") `shouldBe` "456/getUpdates"
         it "returns queryString" $
-          queryString  (eventBuildRequest sess conf "999") `shouldBe` 
+          queryString  (eventBuildRequest conf "999") `shouldBe` 
                "?offset=999&timeout=25"
       describe "echoBuildRequest" $ do
         it "returns host" $

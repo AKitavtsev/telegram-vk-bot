@@ -2,6 +2,7 @@ module Servises.Data
   ( Priority(..)
   ) where
 
+--
 data Priority
       -- | Debug messages
   = DEBUG
