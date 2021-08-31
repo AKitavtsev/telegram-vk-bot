@@ -41,9 +41,10 @@ stack test
     - `Bot.hs` -  bot logic.
 	- `Drop` - helper general functions for parsing incoming messages.
 	- `MapR.hs` - dictionary maintenance.
+	- `Bot/` - possible bot implementations. 
     - `Serveses/` - сonfig and logger services.
       - `Impl/` - service implementations.
-- `test` - our specs, for testing some internal functions. 
+- `test/` - our specs, for testing some internal functions. 
 
 
 
