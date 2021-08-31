@@ -39,11 +39,11 @@ stack test
 - `stack.yaml` - `Stack` configuration.
 - `src/` - contains all the code used by this service.
     - `Bot.hs` -  bot logic.
-	- `Drop` - helper general functions for parsing incoming messages.
+	- `Drop.hs` - helper general functions for parsing incoming messages.
 	- `MapR.hs` - dictionary maintenance.
 	- `Bot/` - possible bot implementations. 
     - `Serveses/` - сonfig and logger services.
-      - `Impl/` - service implementations.
+      - `Impl/` - сonfig and logger servicees implementations.
 - `test/` - our specs, for testing some internal functions. 
 
 

@@ -1,6 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
 
---
 module Bot.Telegram.Internal where
 
 import Data.Maybe (fromMaybe, isJust, isNothing)

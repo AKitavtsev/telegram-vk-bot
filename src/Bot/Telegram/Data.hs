@@ -57,9 +57,9 @@ instance FromJSON CallbackQuery where
 
 data User =
   User
-    { user_id :: Int -- ^ Unique identifier for this user or bot
-    , user_is_bot :: Bool -- ^ True, if this user is a bot
-    , user_first_name :: Text -- ^ User‘s or bot’s first name
+    { user_id :: Int 
+    , user_is_bot :: Bool 
+    , user_first_name :: Text 
     }
   deriving (Show, Eq, Generic)
 
