@@ -1,4 +1,4 @@
-module Servises.Impl.Configurator
+module Services.Impl.Configurator
   ( newHandle
   ) where
 
@@ -8,11 +8,11 @@ import Control.Monad (when)
 import Data.Char (isDigit, isLower)
 import System.Exit (exitFailure)
 
-import Servises.Data (Priority(..))
+import Services.Types (Priority(..))
 
 import qualified Data.Configurator as C
 import qualified Data.Text as T
-import qualified Servises.Config as SC
+import qualified Services.Config as SC
 
 newHandle :: IO SC.Handle
 newHandle = do

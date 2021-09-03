@@ -5,6 +5,7 @@ module Bot
   , loopBot
   , messageOK
   , testException
+  , fromJust
   ) where
 
 import Control.Concurrent (threadDelay)
@@ -15,12 +16,12 @@ import Control.Monad.State
 import qualified Data.ByteString.Lazy.Char8 as LBC
 import Network.HTTP.Simple
 
-import Bot.Telegram.Data
-import Bot.VK.Data
-import Drop
-import MapR
+import Bot.Telegram.Types
+import Bot.VK.Types
+import Dictionary
+import Session
 
-import Servises.Logger as SL
+import Services.Logger as SL
 
 
 data Handle =
@@ -78,3 +79,6 @@ testException rese botHandle hLogger = do
       threadDelay 25000000
       initSession botHandle botHandle hLogger
       httpLBS defaultRequest
+
+fromJust :: Maybe a -> a
+fromJust ~(Just x) = x

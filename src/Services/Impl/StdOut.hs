@@ -1,12 +1,12 @@
-module Servises.Impl.StdOut
+module Services.Impl.StdOut
   ( newHandle
   ) where
 
 --
-import Servises.Data (Priority(..))
+import Services.Types (Priority(..))
 
-import qualified Servises.Config as SC
-import qualified Servises.Logger as SL
+import qualified Services.Config as SC
+import qualified Services.Logger as SL
 
 import Control.Monad (when)
 

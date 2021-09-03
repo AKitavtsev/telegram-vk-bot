@@ -1,4 +1,4 @@
-module Servises.Data
+module Services.Types
   ( Priority(..)
   ) where
 

@@ -1,17 +1,13 @@
-{-# OPTIONS_GHC -fno-warn-orphans #-}
-{-# LANGUAGE OverloadedStrings #-}
-
---
 module Main where
 
 import Bot
 import Bot.Telegram
 import Bot.VK
-import Servises.Config
-import Servises.Logger
+import Services.Config
+import Services.Logger
 
-import qualified Servises.Impl.Configurator as SC
-import qualified Servises.Impl.StdOut as SL
+import qualified Services.Impl.Configurator as SC
+import qualified Services.Impl.StdOut as SL
 
 main :: IO ()
 main = do

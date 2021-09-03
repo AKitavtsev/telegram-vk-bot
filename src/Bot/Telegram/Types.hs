@@ -1,10 +1,8 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE FlexibleContexts #-}
 
-module Bot.Telegram.Data where
+module Bot.Telegram.Types where
 import Data.Aeson.Types
 import GHC.Generics
 
@@ -12,7 +10,7 @@ import Data.Text (Text)
 
 import qualified Data.ByteString.Char8 as BC
 
-import Drop
+import JsonDrop
 
 appTelegram :: BC.ByteString
 appTelegram = "api.telegram.org"

@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Bot.VK
   ( newHandle
   ) where
@@ -14,13 +12,12 @@ import System.Exit
 import qualified Data.Map as M
 
 import Bot
-import Bot.VK.Data
+import Bot.VK.Types
 import Bot.VK.Internal
-import Drop
-import MapR
-import Servises.Config
-import Servises.Logger
-
+import Dictionary
+import Services.Config
+import Services.Logger
+import Session
 --
 newHandle :: Config -> IO Bot.Handle
 newHandle conf = do

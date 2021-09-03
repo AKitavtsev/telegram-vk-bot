@@ -11,11 +11,11 @@ import Network.HTTP.Client.Internal
 import qualified Data.Map as M
 
 import Bot
-import Servises.Config
-import Drop
-import Servises.Logger
-import MapR
-import Bot.Telegram.Data
+import Services.Config
+import Session
+import Services.Logger
+import Dictionary
+import Bot.Telegram.Types
 import Bot.Telegram.Internal
 
 

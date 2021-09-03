@@ -6,11 +6,11 @@ module  Main where
 
 import TlTest
 import VKTest
-import MapRTest
+import DictionaryTest
 
 main :: IO ()
 main = do
-    mapRTest
+    dictionaryTest
     tlTest
     vkTest
     

@@ -12,10 +12,10 @@ import qualified Data.ByteString.Lazy.Char8 as LBC
 import qualified Data.Map as M
 
 import Bot
-import Bot.VK.Data
-import Drop
-import MapR
-import Servises.Config
+import Bot.VK.Types
+import Dictionary
+import Services.Config
+import Session
 
 forCopy :: [UPD] -> Config -> MapInt -> [UPD]
 forCopy upds conf dict = map VK $ concatMap repeating (filtred upds)

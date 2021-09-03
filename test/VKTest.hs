@@ -12,12 +12,12 @@ import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy.Char8 as LBC
 import qualified Data.Map as M
 
-import Servises.Config
-import Bot.VK.Data
-import MapR
+import Services.Config
+import Bot.VK.Types
+import Dictionary
 import Bot.VK
-import Drop
-import Servises.Logger
+import Session
+import Services.Logger
 import Bot
 import Bot.VK.Internal
 

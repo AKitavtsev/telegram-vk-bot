@@ -12,10 +12,9 @@ import qualified Data.Map as M
 import qualified Data.Text as T
 
 import Bot
-import Bot.Telegram.Data
-import Drop (fromJust)
-import MapR
-import Servises.Config
+import Bot.Telegram.Types
+import Dictionary
+import Services.Config
 
 forCopy :: [UPD] -> Config -> MapInt -> [UPD]
 forCopy upds conf dict =

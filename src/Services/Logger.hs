@@ -1,4 +1,4 @@
-module Servises.Logger
+module Services.Logger
   ( Handle(..)
   , logDebug
   , logInfo
@@ -7,8 +7,8 @@ module Servises.Logger
   ) where
 
 --
-import Servises.Config (Config(..))
-import Servises.Data (Priority(..))
+import Services.Config (Config(..))
+import Services.Types (Priority(..))
 
 data Handle =
   Handle

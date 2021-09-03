@@ -1,16 +1,14 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE FlexibleContexts #-}
 
---
-module Bot.VK.Data where
+module Bot.VK.Types where
 
 import Data.Aeson
 import GHC.Generics
 
-import Drop
+import JsonDrop
+import Session
 
 appVK :: String
 appVK = "https://api.vk.com/method/messages.send"

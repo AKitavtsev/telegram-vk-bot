@@ -1,6 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-orphans #-}
-{-# LANGUAGE OverloadedStrings #-}
-
 module Bot.Telegram where
 
 import Control.Exception
@@ -11,12 +8,11 @@ import Network.HTTP.Simple
 import qualified Data.Map as M
 
 import Bot
-import Drop
-import MapR
-import Servises.Config
-
+import Dictionary
+import Services.Config
+import Session
 import Bot.Telegram.Internal
-import Servises.Logger
+import Services.Logger
 
 newHandle :: Config -> IO Bot.Handle
 newHandle conf = do

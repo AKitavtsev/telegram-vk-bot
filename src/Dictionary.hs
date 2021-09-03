@@ -1,4 +1,4 @@
-module MapR
+module Dictionary
   ( MapInt
   , changeMapInt
   ) where

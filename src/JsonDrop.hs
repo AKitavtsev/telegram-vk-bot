@@ -4,7 +4,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 --
-module Drop where
+module JsonDrop where
 
 import Data.Aeson
 import Data.Aeson.Types
@@ -29,13 +29,3 @@ toJsonDrop prefix =
   genericToJSON
     defaultOptions {fieldLabelModifier = drop prefix, omitNothingFields = True}
 
-fromJust :: Maybe a -> a
-fromJust ~(Just x) = x
-
-data Session =
-  Session
-    { key :: String
-    , server :: String
-    , ts :: String
-    }
-  deriving (FromJSON, Show, Generic)

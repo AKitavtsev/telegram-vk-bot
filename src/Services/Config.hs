@@ -1,8 +1,4 @@
-{-# LANGUAGE DuplicateRecordFields #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
-
---
-module Servises.Config
+module Services.Config
   ( Handle(..)
   , ForModule(..)
   , Config(..)
@@ -10,7 +6,7 @@ module Servises.Config
   , getBotConfig
   ) where
 
-import Servises.Data (Priority(..))
+import Services.Types (Priority(..))
 
 data ForModule
   = LOG

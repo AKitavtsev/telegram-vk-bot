@@ -2,6 +2,7 @@
 .vscode
 .history
 local_bot.conf
+bot.conf
 gitpush.bat
 
 

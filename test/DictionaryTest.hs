@@ -2,19 +2,19 @@
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE ViewPatterns #-}
 
-module  MapRTest where
+module  DictionaryTest where
 
 import Test.Hspec
 import Control.Monad.State
 
 import qualified Data.Map as M
 
-import MapR
+import Dictionary
 
 
-mapRTest :: IO ()
-mapRTest = hspec $ do
-    describe "MapR" $ do
+dictionaryTest :: IO ()
+dictionaryTest = hspec $ do
+    describe "Dictionary" $ do
       describe "changeMapInt" $ do
         it "add in empty" $ 
           runState (changeMapInt (5, 5))  M.empty `shouldBe` ((), M.singleton 5 5)

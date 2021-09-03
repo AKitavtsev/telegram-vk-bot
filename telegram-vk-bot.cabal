@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c3fa2ef53220806b0789590567db12de005b5ba8e08aeb0c1c5b0bddf3be3403
+-- hash: 8cd43e6376d300a19f11892f361b573909965d81adfcc68cffb70025fd139575
 
 name:           telegram-vk-bot
 version:        0.1.0.0
@@ -29,18 +29,19 @@ library
   exposed-modules:
       Bot
       Bot.Telegram
-      Bot.Telegram.Data
       Bot.Telegram.Internal
+      Bot.Telegram.Types
       Bot.VK
-      Bot.VK.Data
       Bot.VK.Internal
-      Drop
-      MapR
-      Servises.Config
-      Servises.Data
-      Servises.Impl.Configurator
-      Servises.Impl.StdOut
-      Servises.Logger
+      Bot.VK.Types
+      Dictionary
+      JsonDrop
+      Services.Config
+      Services.Impl.Configurator
+      Services.Impl.StdOut
+      Services.Logger
+      Services.Types
+      Session
   other-modules:
       Paths_telegram_vk_bot
   hs-source-dirs:
@@ -83,7 +84,7 @@ test-suite telegram-vk-bot-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      MapRTest
+      DictionaryTest
       TlTest
       VKTest
       Paths_telegram_vk_bot
