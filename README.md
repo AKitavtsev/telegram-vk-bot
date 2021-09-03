@@ -14,7 +14,7 @@ stack setup
 # build the project
 stack build 
 ```
-Rename (or copy) file `bot.template.conf` to `bot.conf`. You can also create a file `local_bot.conf`, if it is present, the configuration parameters will be determined in accordance with it, otherwise, by `bot.conf`.
+Rename (or copy) file `bot.conf.template` to `bot.conf`. You can also create a file `local_bot.conf`, if it is present, the configuration parameters will be determined in accordance with it, otherwise, by `bot.conf`.
 Before starting the application, you must specify the bot implementation you will use. To do this, you need to write the name of the messenger in the configuration file - `telegram` or `VK` (default - `telegram`). 
 You also need to specify authorization data in the config file (token for telegrams, and token and group_id for VK).
 
