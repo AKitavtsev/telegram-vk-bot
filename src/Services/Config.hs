@@ -1,39 +1,24 @@
 module Services.Config
   ( Handle(..)
-  , ForModule(..)
-  , Config(..)
-  , getLogConfig
-  , getBotConfig
+  , Config (..)
   ) where
 
 import Services.Types (Priority(..))
 
-data ForModule
-  = LOG
-  | BOT
-  deriving (Eq, Ord, Show)
-
 newtype Handle =
   Handle
-    { getConfig :: ForModule -> IO Config
+    { getConfig :: IO Config
     }
 
-data Config
-  = LogConfig
-      { level :: !Priority
-      }
-  | BotConfig
-      { сonfigApi :: !String
-      , groupId :: !String
-      , сonfigToken :: !String
-      , сonfigNumberRepeat :: !Int
-      , messageForRepeat :: !String
-      , messageForHelp :: !String
-      , myTimeout :: !Int
-      }
+data Config =
+  Config
+    { level :: !Priority
+    , сonfigApi :: !String
+    , groupId :: !String
+    , сonfigToken :: !String
+    , сonfigNumberRepeat :: !Int
+    , messageForRepeat :: !String
+    , messageForHelp :: !String
+    , myTimeout :: !Int
+    }
   deriving (Show)
-
-getLogConfig, getBotConfig :: Handle -> IO Config
-getLogConfig = (`getConfig` LOG)
-
-getBotConfig = (`getConfig` BOT)

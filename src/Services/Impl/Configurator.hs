@@ -2,7 +2,6 @@ module Services.Impl.Configurator
   ( newHandle
   ) where
 
---
 import Control.Monad (when)
 
 import Data.Char (isDigit, isLower)
@@ -18,40 +17,36 @@ newHandle :: IO SC.Handle
 newHandle = do
   return $ SC.Handle {SC.getConfig = getconfig}
   where
-    getconfig fm = do
+    getconfig = do
       conf <- C.load [C.Optional "bot.conf", C.Optional "local_bot.conf"]
-      case fm of
-        SC.LOG -> do
-          levelStr <-
-            C.lookupDefault "INFO" conf (T.pack "logger.logg_level") :: IO String
-          let level =
-                case levelStr of
-                  "DEBUG" -> DEBUG
-                  "WARN" -> WARN
-                  "INFO" -> INFO
-                  "ERROR" -> ERROR
-                  _ -> INFO
-          return (SC.LogConfig level)
-        SC.BOT -> do
-          api <- C.lookupDefault "telegram" conf (T.pack "bot.api") :: IO String
-          groupId <-
-            C.lookupDefault "" conf (T.pack "bot.groupId") :: IO String
-          token <- getToken conf api
-          numberRepeat <- C.lookupDefault 1 conf (T.pack "bot.repeat") :: IO Int
-          messageForRepeat <-
-            C.lookupDefault "" conf (T.pack "bot.messageForRepeat") :: IO String
-          messageForHelp <-
-            C.lookupDefault "" conf (T.pack "bot.messageForHelp") :: IO String
-          myTimeout <- C.lookupDefault 5 conf (T.pack "bot.timeout") :: IO Int
-          return
-            (SC.BotConfig
-               api
-               groupId
-               token
-               numberRepeat
-               messageForRepeat
-               messageForHelp
-               myTimeout)
+      levelStr <-
+        C.lookupDefault "INFO" conf (T.pack "logger.logg_level") :: IO String
+      let level =
+            case levelStr of
+              "DEBUG" -> DEBUG
+              "WARN" -> WARN
+              "INFO" -> INFO
+              "ERROR" -> ERROR
+              _ -> INFO
+      api <- C.lookupDefault "telegram" conf (T.pack "bot.api") :: IO String
+      groupId <- C.lookupDefault "" conf (T.pack "bot.groupId") :: IO String
+      token <- getToken conf api
+      numberRepeat <- C.lookupDefault 1 conf (T.pack "bot.repeat") :: IO Int
+      messageForRepeat <-
+        C.lookupDefault "" conf (T.pack "bot.messageForRepeat") :: IO String
+      messageForHelp <-
+        C.lookupDefault "" conf (T.pack "bot.messageForHelp") :: IO String
+      myTimeout <- C.lookupDefault 5 conf (T.pack "bot.timeout") :: IO Int
+      return
+        (SC.Config
+           level
+           api
+           groupId
+           token
+           numberRepeat
+           messageForRepeat
+           messageForHelp
+           myTimeout)
       where
         getToken conf "telegram" = do
           token <- C.lookupDefault "" conf (T.pack "bot.token") :: IO String

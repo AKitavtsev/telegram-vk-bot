@@ -6,14 +6,11 @@ module Services.Logger
   , logError
   ) where
 
---
-import Services.Config (Config(..))
 import Services.Types (Priority(..))
 
-data Handle =
+newtype Handle =
   Handle
-    { config :: Config
-    , logPriority :: Priority -> String -> IO ()
+    { logPriority :: Priority -> String -> IO ()
     }
 
 logDebug, logInfo, logWarning, logError :: Handle -> String -> IO ()

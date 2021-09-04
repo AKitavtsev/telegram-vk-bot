@@ -12,6 +12,7 @@ import qualified Data.Map as M
 
 import Bot
 import Services.Config
+import Services.Types (Priority(..))
 import Session
 import Services.Logger
 import Dictionary
@@ -30,7 +31,7 @@ tlTest = hspec $ do
                       (User 484189457 False "Андрей")  (Just "3")))
       uPDR = Tl (Update 146878330 (Just mess {text = (Just "/repeat")}) Nothing)
       uPDН = Tl (Update 146878330 (Just mess {text = (Just "/help")}) Nothing)
-      conf = BotConfig "" "123" "456"  1 "RepeatMe" "Help me!" 25
+      conf = Config INFO "" "123" "456"  1 "RepeatMe" "Help me!" 25
       sess = Session "" "" "0"
 
   describe "Telegram.Internal" $ do

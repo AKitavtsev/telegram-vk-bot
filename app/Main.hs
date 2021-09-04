@@ -12,15 +12,13 @@ import qualified Services.Impl.StdOut as SL
 main :: IO ()
 main = do
   hConfig <- SC.newHandle
-  logConf <- getLogConfig hConfig
-  botConf <- getBotConfig hConfig
-  hLogger <- SL.newHandle logConf
+  conf <- getConfig hConfig
+  hLogger <- SL.newHandle conf
   logDebug
     hLogger
-    (" -- configuration file bot.conf read:\n" ++
-     show logConf ++ "\n" ++ show botConf)
+    (" -- configuration file bot.conf read:\n" ++ show conf)
   botHandle <-
-    case сonfigApi botConf of
-      "vk" -> Bot.VK.newHandle botConf
-      _ -> Bot.Telegram.newHandle botConf
+    case сonfigApi conf of
+      "vk" -> Bot.VK.newHandle conf
+      _ -> Bot.Telegram.newHandle conf
   initSession botHandle botHandle hLogger
