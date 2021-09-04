@@ -34,8 +34,8 @@ newHandle = do
           return (SC.LogConfig level)
         SC.BOT -> do
           api <- C.lookupDefault "telegram" conf (T.pack "bot.api") :: IO String
-          group_id <-
-            C.lookupDefault "" conf (T.pack "bot.group_id") :: IO String
+          groupId <-
+            C.lookupDefault "" conf (T.pack "bot.groupId") :: IO String
           token <- getToken conf api
           numberRepeat <- C.lookupDefault 1 conf (T.pack "bot.repeat") :: IO Int
           messageForRepeat <-
@@ -46,7 +46,7 @@ newHandle = do
           return
             (SC.BotConfig
                api
-               group_id
+               groupId
                token
                numberRepeat
                messageForRepeat

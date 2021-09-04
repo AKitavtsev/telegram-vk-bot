@@ -46,7 +46,7 @@ initBuildRequest conf =
   parseRequest_ "https://api.vk.com/method/groups.getLongPollServer"
   where
     qi =
-      [ ("group_id", Just (BC.pack $ group_id conf))
+      [ ("group_id", Just (BC.pack $ groupId conf))
       , ("access_token", Just (BC.pack $ сonfigToken conf))
       , ("v", Just "5.126")
       ]

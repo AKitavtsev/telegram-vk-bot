@@ -49,7 +49,7 @@ newHandle conf = do
           loopBot botHandle hLogger (DataLoop x [] M.empty $ ts x)
           return ()
         Nothing -> do
-          logError hLogger " -- Wrong vkToken or group_id"
+          logError hLogger " -- Wrong vkToken or groupId"
           exitFailure
     getUpdatesVk botHandle hLogger dl = do
       let sess = session dl

@@ -24,7 +24,7 @@ data Config
       }
   | BotConfig
       { сonfigApi :: !String
-      , group_id :: !String
+      , groupId :: !String
       , сonfigToken :: !String
       , сonfigNumberRepeat :: !Int
       , messageForRepeat :: !String

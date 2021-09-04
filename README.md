@@ -16,7 +16,7 @@ stack build
 ```
 Rename (or copy) file `bot.conf.template` to `bot.conf`. You can also create a file `local_bot.conf`, if it is present, the configuration parameters will be determined in accordance with it, otherwise, by `bot.conf`.
 Before starting the application, you must specify the bot implementation you will use. To do this, you need to write the name of the messenger in the configuration file - `telegram` or `VK` (default - `telegram`). 
-You also need to specify authorization data in the config file (token for telegrams, and token and group_id for VK).
+You also need to specify authorization data in the config file (token for telegrams, and token and groupId for VK).
 
 Instructions for creating and registering a bot are here -
 https://core.telegram.org/bots#6-botfather and

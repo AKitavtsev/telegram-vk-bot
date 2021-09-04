@@ -6,7 +6,7 @@ bot {
 # api should be "telegram" or "vk" . By default - telegram
   api = "vk"
 # only for vk. group_id should look like: "201341824"
-  group_id = ""
+  groupId = ""
 # token should look like: "bot1509893058:AAD3uC_cmyxDQJfBZtQgs2E4-K55xivO8Wc" 
   token = "bot"
 # vkToken should look like:
