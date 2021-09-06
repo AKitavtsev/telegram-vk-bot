@@ -8,11 +8,11 @@ import Network.HTTP.Simple
 import qualified Data.Map as M
 
 import Bot
+import Bot.Telegram.Internal
 import Dictionary
 import Services.Config
-import Session
-import Bot.Telegram.Internal
 import Services.Logger
+import Session
 
 newHandle :: Config -> IO Bot.Handle
 newHandle conf = do
@@ -71,3 +71,12 @@ newHandle conf = do
               (mapM_ changeMapInt $ getUserAndNumRep $ listUpdWithKey upds)
               dict
       return dl {dictionary = newdict}
+    -- newDictTl dl = do
+    -- newdictTl = dl {dictionary = newdict}
+      -- where 
+        -- upds = updates dl
+        -- dict = dictionary dl
+        -- newdict = execState
+              -- (mapM_ changeMapInt $ getUserAndNumRep $ listUpdWithKey upds)
+              -- dict
+
