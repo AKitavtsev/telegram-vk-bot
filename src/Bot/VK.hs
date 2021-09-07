@@ -12,12 +12,13 @@ import System.Exit
 import qualified Data.Map as M
 
 import Bot
-import Bot.VK.Types
 import Bot.VK.Internal
+import Bot.VK.Types
 import Dictionary
 import Services.Config
 import Services.Logger
 import Session
+
 --
 newHandle :: Config -> IO Bot.Handle
 newHandle conf = do
@@ -69,6 +70,7 @@ newHandle conf = do
           newts = fromJust $ a_ts answer
       logDebug hLogger (" List of Updates received = \n " ++ show upds)
       return dl {updates = map VK upds, offset = newts}
+      where fromJust ~(Just x) = x
     copyMessagesVk hLogger dl = do
       mapM_ copyMessage $ forCopy upds conf dict
       return dl
@@ -77,7 +79,7 @@ newHandle conf = do
         dict = dictionary dl
         copyMessage ~(VK x) = do
           let event = getVkItemMessage x
-          logInfo hLogger (" to user " ++ (show $ m_from_id event))
+          logInfo hLogger (" to user " ++ show (m_from_id event))
           httpLBS $ echoBuildRequest conf event
     sendMessagesWithKbVK hLogger dl = do
       mapM_ sendMessageWithKb $ forKb upds
@@ -87,7 +89,7 @@ newHandle conf = do
         dict = dictionary dl
         sendMessageWithKb ~(VK x) = do
           let event = getVkItemMessage x
-          logInfo hLogger (" to user " ++ (show $ m_from_id event))
+          logInfo hLogger (" to user " ++ show (m_from_id event))
           httpLBS $ kbBuildRequest conf dict event
     sendMessagesWithHelpVK hLogger dl = do
       mapM_ sendMessageWithHelp $ forHelp upds
@@ -96,13 +98,13 @@ newHandle conf = do
         upds = updates dl
         sendMessageWithHelp ~(VK x) = do
           let event = getVkItemMessage x
-          logInfo hLogger (" to user " ++ (show $ m_from_id event))
+          logInfo hLogger (" to user " ++ show (m_from_id event))
           httpLBS $ helpBuildRequest conf event
-    newDictVK dl = do
-      let upds = updates dl
-          dict = dictionary dl
-          newdict =
-            execState
-              (mapM_ changeMapInt $ getUserAndNumRep $ listUpdWithKey upds)
-              dict
-      return dl {dictionary = newdict}
+    newDictVK dl = dl {dictionary = dict'}
+      where
+        upds = updates dl
+        dict = dictionary dl
+        dict' =
+          execState
+            (mapM_ changeMapInt $ getUserAndNumRep $ listUpdWithKey upds)
+            dict

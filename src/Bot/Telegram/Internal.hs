@@ -99,21 +99,25 @@ listUpd (Just (TlResponse x)) = x
 listUpd Nothing = []
 
 usId :: Update -> Int
-usId x = user_id us
+usId upd = user_id us
   where
     us =
-      if isNothing (message x)
-        then cq_from (fromJust $ callback_query x)
-        else fromJust (from $ fromJust $ message x)
-
+      if isNothing (message upd)
+        then cq_from (fromJust $ callback_query upd)
+        else fromJust (from $ fromJust $ message upd)
+    fromJust ~(Just x) = x
+    
 mesId :: Update -> Int
-mesId x = message_id (fromJust $ message x)
+mesId upd = message_id (fromJust $ message upd)
+  where fromJust ~(Just x) = x
 
 txt :: Update -> T.Text
-txt x = fromMaybe "" (text (fromJust $ message x))
+txt upd = fromMaybe "" (text (fromJust $ message upd))
+  where fromJust ~(Just x) = x
 
 cbData :: Update -> String
-cbData x = fromMaybe "" (cq_data (fromJust $ callback_query x))
+cbData upd = fromMaybe "" (cq_data (fromJust $ callback_query upd))
+  where fromJust ~(Just x) = x
 
 getUserAndNumRep :: [UPD] -> [(Int, Int)]
 getUserAndNumRep = map fgets

@@ -1,11 +1,11 @@
 logger {
-# logg_level should be "DEBUG" or "INFO" or "WARN" or "ERROR". By default - "INFO"
-       logg_level = "DEBUG"
+# loggLevel should be "DEBUG" or "INFO" or "WARN" or "ERROR". By default - "INFO"
+       loggLevel = "DEBUG"
 	   }
 bot {
 # api should be "telegram" or "vk" . By default - telegram
   api = "vk"
-# only for vk. group_id should look like: "201341824"
+# only for vk. groupId should look like: "201341824"
   groupId = ""
 # token should look like: "bot1509893058:AAD3uC_cmyxDQJfBZtQgs2E4-K55xivO8Wc" 
   token = "bot"

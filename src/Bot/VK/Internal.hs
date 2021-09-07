@@ -112,6 +112,7 @@ getUserAndNumRep = map fgets
   where
     fgets ~(VK x) = (m_from_id $ getVkItemMessage x, payload x)
     payload x = read $ fromJust $ m_payload $ getVkItemMessage x :: Int
+    fromJust ~(Just x) = x
 
 getVkItemMessage :: Event -> VKItemMessage
 getVkItemMessage e = m_message $ e_object e

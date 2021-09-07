@@ -12,4 +12,4 @@ newHandle config = do
   return $ SL.Handle {SL.logPriority = logPriority}
   where
     logPriority prio msg = do
-      when (prio >= SC.level config) $ do putStrLn (show prio ++ msg)
+      when (prio >= SC.levelLog config) $ do putStrLn (show prio ++ msg)

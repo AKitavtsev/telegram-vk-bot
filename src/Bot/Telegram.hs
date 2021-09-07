@@ -63,20 +63,11 @@ newHandle conf = do
         sendMessageWithHelp ~(Tl x) = do
           logInfo hLogger (" to user " ++ show (usId x))
           httpLBS $ helpBuildRequest conf x
-    newDictTl dl = do
-      let upds = updates dl
-          dict = dictionary dl
-          newdict =
-            execState
-              (mapM_ changeMapInt $ getUserAndNumRep $ listUpdWithKey upds)
-              dict
-      return dl {dictionary = newdict}
-    -- newDictTl dl = do
-    -- newdictTl = dl {dictionary = newdict}
-      -- where 
-        -- upds = updates dl
-        -- dict = dictionary dl
-        -- newdict = execState
-              -- (mapM_ changeMapInt $ getUserAndNumRep $ listUpdWithKey upds)
-              -- dict
-
+    newDictTl dl = dl {dictionary = dict'}
+      where
+        upds = updates dl
+        dict = dictionary dl
+        dict' =
+          execState
+            (mapM_ changeMapInt $ getUserAndNumRep $ listUpdWithKey upds)
+            dict

@@ -15,12 +15,12 @@ import qualified Services.Config as SC
 
 newHandle :: IO SC.Handle
 newHandle = do
-  return $ SC.Handle {SC.getConfig = getconfig}
+  return $ SC.Handle {SC.getConfig = getConfig}
   where
-    getconfig = do
+    getConfig = do
       conf <- C.load [C.Optional "bot.conf", C.Optional "local_bot.conf"]
       levelStr <-
-        C.lookupDefault "INFO" conf (T.pack "logger.logg_level") :: IO String
+        C.lookupDefault "INFO" conf (T.pack "logger.loggLevel") :: IO String
       let level =
             case levelStr of
               "DEBUG" -> DEBUG
@@ -70,8 +70,9 @@ newHandle = do
           return ""
 
 wrongToken :: String -> Bool
-wrongToken ('b':'o':'t':xs) = length xs /= 46
-wrongToken _ = True
+wrongToken _ = False
+-- wrongToken ('b':'o':'t':xs) = length xs /= 46
+-- wrongToken _ = True
 
 vkWrongToken :: String -> Bool
 vkWrongToken xs = not (length xs == 85 && foldl f True xs)

@@ -12,7 +12,7 @@ newtype Handle =
 
 data Config =
   Config
-    { level :: !Priority
+    { levelLog :: !Priority
     , сonfigApi :: !String
     , groupId :: !String
     , сonfigToken :: !String

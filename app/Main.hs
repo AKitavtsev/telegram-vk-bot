@@ -18,7 +18,7 @@ main = do
     hLogger
     (" -- configuration file bot.conf read:\n" ++ show conf)
   botHandle <-
-    case сonfigApi conf of
+    case сonfigApi conf of 
       "vk" -> Bot.VK.newHandle conf
       _ -> Bot.Telegram.newHandle conf
   initSession botHandle botHandle hLogger

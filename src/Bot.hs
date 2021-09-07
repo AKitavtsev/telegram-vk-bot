@@ -5,7 +5,6 @@ module Bot
   , loopBot
   , messageOK
   , testException
-  , fromJust
   ) where
 
 import Control.Concurrent (threadDelay)
@@ -23,7 +22,6 @@ import Session
 
 import Services.Logger as SL
 
-
 data Handle =
   Handle
     { initSession :: Bot.Handle -> SL.Handle -> IO ()
@@ -31,7 +29,7 @@ data Handle =
     , copyMessages :: SL.Handle -> DataLoop -> IO DataLoop
     , sendMessagesWithKb :: SL.Handle -> DataLoop -> IO DataLoop
     , sendMessagesWithHelp :: SL.Handle -> DataLoop -> IO DataLoop
-    , newDict :: DataLoop -> IO DataLoop
+    , newDict :: DataLoop -> DataLoop
     }
 
 data UPD
@@ -48,12 +46,12 @@ data DataLoop =
     }
 
 loopBot :: Bot.Handle -> SL.Handle -> DataLoop -> IO ()
-loopBot botHandle hLogger dl =
-  getUpdates botHandle botHandle hLogger dl >>= copyMessages botHandle hLogger >>=
-  sendMessagesWithKb botHandle hLogger >>=
-  sendMessagesWithHelp botHandle hLogger >>=
-  newDict botHandle >>=
-  loopBot botHandle hLogger
+loopBot botHandle hLogger dl = do
+  newDl <-
+    getUpdates botHandle botHandle hLogger dl >>= copyMessages botHandle hLogger >>=
+    sendMessagesWithKb botHandle hLogger >>=
+    sendMessagesWithHelp botHandle hLogger
+  loopBot botHandle hLogger (newDict botHandle newDl)
 
 messageOK ::
      Response LBC.ByteString -> SL.Handle -> IO (Response LBC.ByteString)
@@ -80,5 +78,3 @@ testException rese botHandle hLogger = do
       initSession botHandle botHandle hLogger
       httpLBS defaultRequest
 
-fromJust :: Maybe a -> a
-fromJust ~(Just x) = x
