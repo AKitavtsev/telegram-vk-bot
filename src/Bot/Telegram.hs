@@ -1,4 +1,7 @@
-module Bot.Telegram where
+module Bot.Telegram 
+  ( newHandle
+  , initSession
+  ) where
 
 import Control.Exception
 import Control.Monad.State
@@ -11,28 +14,24 @@ import Bot
 import Bot.Telegram.Internal
 import Dictionary
 import Services.Config
-import Services.Logger
+import Services.Logger as SL
 import Session
 
 newHandle :: Config -> IO Bot.Handle
 newHandle conf = do
   return $
     Bot.Handle
-      { initSession = initSessionTl
-      , getUpdates = getUpdatesTl
+      { getUpdates = getUpdatesTl
       , copyMessages = copyMessagesTl
       , sendMessagesWithKb = sendMessagesWithKbTl
       , sendMessagesWithHelp = sendMessagesWithHelpTl
       , newDict = newDictTl
       }
   where
-    initSessionTl botHandle hLogger = do
-      loopBot botHandle hLogger (DataLoop (Session "" "" "0") [] M.empty "0")
-      return ()
     getUpdatesTl botHandle hLogger dl = do
       let offs = offset dl
       resEither <- try (httpLBS $ eventBuildRequest conf offs)
-      res' <- testException resEither botHandle hLogger
+      res' <- testException resEither hLogger
       res <- messageOK res' hLogger
       let upds = listUpd (decode $ getResponseBody res)
       logDebug hLogger (" List of Updates received = \n " ++ show upds)
@@ -71,3 +70,8 @@ newHandle conf = do
           execState
             (mapM_ changeMapInt $ getUserAndNumRep $ listUpdWithKey upds)
             dict
+
+initSession :: Bot.Handle -> SL.Handle -> Config -> IO ()
+initSession botHandle hLogger conf = do
+  loopBot botHandle hLogger (DataLoop (Session "" "" "0") [] M.empty "0")
+  return ()

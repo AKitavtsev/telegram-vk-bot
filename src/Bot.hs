@@ -24,8 +24,7 @@ import Services.Logger as SL
 
 data Handle =
   Handle
-    { initSession :: Bot.Handle -> SL.Handle -> IO ()
-    , getUpdates :: Bot.Handle -> SL.Handle -> DataLoop -> IO DataLoop
+    { getUpdates :: Bot.Handle -> SL.Handle -> DataLoop -> IO DataLoop
     , copyMessages :: SL.Handle -> DataLoop -> IO DataLoop
     , sendMessagesWithKb :: SL.Handle -> DataLoop -> IO DataLoop
     , sendMessagesWithHelp :: SL.Handle -> DataLoop -> IO DataLoop
@@ -64,10 +63,12 @@ messageOK res hLogger = do
 
 testException ::
      Either SomeException (Response LBC.ByteString)
-  -> Bot.Handle
+  -- -> Bot.Handle
   -> SL.Handle
   -> IO (Response LBC.ByteString)
-testException rese botHandle hLogger = do
+testException rese  
+-- botHandle 
+              hLogger = do
   case rese of
     Right val -> return val
     Left _ -> do
@@ -75,6 +76,7 @@ testException rese botHandle hLogger = do
         hLogger
         "-- Connection Failure -- Trying to initialize the session"
       threadDelay 25000000
-      initSession botHandle botHandle hLogger
+      -- initSession botHandle hLogger
+      _ <- exitFailure
       httpLBS defaultRequest
 
