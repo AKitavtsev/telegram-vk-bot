@@ -99,24 +99,27 @@ listUpd (Just (TlResponse x)) = x
 listUpd Nothing = []
 
 usId :: Update -> Int
-usId upd = user_id us
+usId upd | isNothing (message upd ) && isNothing (callback_query upd) = 0
+         | otherwise = user_id us
   where
-    us =
-      if isNothing (message upd)
-        then cq_from (fromJust $ callback_query upd)
-        else fromJust (from $ fromJust $ message upd)
+    us  = if isNothing (message upd)
+          then cq_from (fromJust $ callback_query upd)
+          else fromJust (from $ fromJust $ message upd)
     fromJust ~(Just x) = x
     
 mesId :: Update -> Int
-mesId upd = message_id (fromJust $ message upd)
+mesId upd | isNothing (message upd) = 0
+          | otherwise = message_id (fromJust $ message upd)
   where fromJust ~(Just x) = x
 
 txt :: Update -> T.Text
-txt upd = fromMaybe "" (text (fromJust $ message upd))
+txt upd | isNothing (message upd) = ""
+        | otherwise = fromMaybe "" (text (fromJust $ message upd))
   where fromJust ~(Just x) = x
 
 cbData :: Update -> String
-cbData upd = fromMaybe "" (cq_data (fromJust $ callback_query upd))
+cbData upd | isNothing (callback_query upd) = ""
+           | otherwise = fromMaybe "" (cq_data (fromJust $ callback_query upd))
   where fromJust ~(Just x) = x
 
 getUserAndNumRep :: [UPD] -> [(Int, Int)]

@@ -3,7 +3,7 @@
 --
 module Bot.VK.Internal where
 
-import Data.Maybe (isJust, isNothing)
+import Data.Maybe (isJust, isNothing, fromMaybe)
 import Network.HTTP.Simple
 
 import Data.Aeson
@@ -111,8 +111,7 @@ getUserAndNumRep :: [UPD] -> [(Int, Int)]
 getUserAndNumRep = map fgets
   where
     fgets ~(VK x) = (m_from_id $ getVkItemMessage x, payload x)
-    payload x = read $ fromJust $ m_payload $ getVkItemMessage x :: Int
-    fromJust ~(Just x) = x
+    payload x = read $ fromMaybe "1" $ m_payload $ getVkItemMessage x :: Int
 
 getVkItemMessage :: Event -> VKItemMessage
 getVkItemMessage e = m_message $ e_object e

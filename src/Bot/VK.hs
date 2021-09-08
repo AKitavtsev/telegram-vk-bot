@@ -61,13 +61,16 @@ newHandle conf = do
       let answerMaybe = (decode $ getResponseBody res) :: Maybe Answer
       when (isNothing answerMaybe) $ do
         logWarning hLogger " -- requesting new values key and ts"
-        initSession botHandle botHandle hLogger
+        initSession botHandle botHandle hLogger        
       let answer = fromJust answerMaybe
       when (isNothing (a_ts answer)) $ do
         logWarning hLogger " -- requesting new values key and ts"
         initSession botHandle botHandle hLogger
+      let newts = fromJust $ a_ts answer
+      when (isNothing (a_updates answer)) $ do
+        logWarning hLogger " -- requesting new values key and ts"
+        initSession botHandle botHandle hLogger
       let upds = fromJust $ a_updates answer
-          newts = fromJust $ a_ts answer
       logDebug hLogger (" List of Updates received = \n " ++ show upds)
       return dl {updates = map VK upds, offset = newts}
       where fromJust ~(Just x) = x
