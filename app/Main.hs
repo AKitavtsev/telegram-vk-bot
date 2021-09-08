@@ -23,4 +23,4 @@ main = do
       _ -> TL.newHandle conf
   case сonfigApi conf of
       "vk" -> VK.initSession botHandle hLogger conf
-      _    -> TL.initSession botHandle hLogger conf
+      _    -> TL.initSession botHandle hLogger

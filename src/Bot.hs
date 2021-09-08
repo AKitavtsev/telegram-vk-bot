@@ -79,4 +79,4 @@ testException rese
       -- initSession botHandle hLogger
       _ <- exitFailure
       httpLBS defaultRequest
-
+--

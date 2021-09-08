@@ -113,3 +113,4 @@ initSession botHandle hLogger conf = do
         Nothing -> do
           logError hLogger " -- Wrong vkToken or groupId"
           exitFailure
+--

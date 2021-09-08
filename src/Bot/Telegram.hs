@@ -71,7 +71,7 @@ newHandle conf = do
             (mapM_ changeMapInt $ getUserAndNumRep $ listUpdWithKey upds)
             dict
 
-initSession :: Bot.Handle -> SL.Handle -> Config -> IO ()
-initSession botHandle hLogger conf = do
+initSession :: Bot.Handle -> SL.Handle -> IO ()
+initSession botHandle hLogger = do
   loopBot botHandle hLogger (DataLoop (Session "" "" "0") [] M.empty "0")
   return ()
