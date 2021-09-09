@@ -16,22 +16,22 @@ import Bot.Telegram.Types
 import Dictionary
 import Services.Config
 
-forCopy :: [UPD] -> Config -> MapInt -> [UPD]
+forCopy :: [Update] -> Config -> MapInt -> [Update]
 forCopy upds conf dict =
-  map Tl $ concatMap repeating (filtred $ listUpdWithMessage upds)
+  concatMap repeating (filtred $ listUpdWithMessage upds)
   where
-    filtred = filter (\(Tl x) -> txt x /= "/repeat" && txt x /= "/help")
-    repeating ~(Tl x) = replicate (numRepeat x) x
+    filtred = filter (\x -> txt x /= "/repeat" && txt x /= "/help")
+    repeating x = replicate (numRepeat x) x
     numRepeat x = M.findWithDefault (сonfigNumberRepeat conf) (usId x) dict
 
-forHelp, forKb, listUpdWithKey, listUpdWithMessage :: [UPD] -> [UPD]
-listUpdWithMessage = filter (\(Tl x) -> isJust (message x))
+forHelp, forKb, listUpdWithKey, listUpdWithMessage :: [Update] -> [Update]
+listUpdWithMessage = filter (\x -> isJust (message x))
 
-forHelp xs = filter (\(Tl x) -> txt x == "/help") $ listUpdWithMessage xs
+forHelp xs = filter (\x -> txt x == "/help") $ listUpdWithMessage xs
 
-forKb xs = filter (\(Tl x) -> txt x == "/repeat") $ listUpdWithMessage xs
+forKb xs = filter (\x -> txt x == "/repeat") $ listUpdWithMessage xs
 
-listUpdWithKey = filter (\(Tl x) -> isJust (callback_query x))
+listUpdWithKey = filter (\x -> isJust (callback_query x))
 
 eventBuildRequest :: Config -> String -> Request
 eventBuildRequest conf offs =
@@ -122,7 +122,7 @@ cbData upd | isNothing (callback_query upd) = ""
            | otherwise = fromMaybe "" (cq_data (fromJust $ callback_query upd))
   where fromJust ~(Just x) = x
 
-getUserAndNumRep :: [UPD] -> [(Int, Int)]
+getUserAndNumRep :: [Update] -> [(Int, Int)]
 getUserAndNumRep = map fgets
   where
-    fgets ~(Tl x) = ((usId x), (read (cbData x) :: Int))
+    fgets x = ((usId x), (read (cbData x) :: Int))

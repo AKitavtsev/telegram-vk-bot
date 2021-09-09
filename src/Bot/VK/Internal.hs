@@ -17,28 +17,28 @@ import Dictionary
 import Services.Config
 import Session
 
-forCopy :: [UPD] -> Config -> MapInt -> [UPD]
-forCopy upds conf dict = map VK $ concatMap repeating (filtred upds)
+forCopy :: [Event] -> Config -> MapInt -> [Event]
+forCopy upds conf dict = concatMap repeating (filtred upds)
   where
     filtred =
       filter
-        (\(VK x) ->
+        (\x ->
            (m_text (getVkItemMessage x) /= "/repeat" &&
             m_text (getVkItemMessage x) /= "/help") &&
            isNothing (m_payload (getVkItemMessage x)))
-    repeating ~(VK x) = replicate (numRepeat x) x
+    repeating x = replicate (numRepeat x) x
     numRepeat x =
       M.findWithDefault
         (сonfigNumberRepeat conf)
         (m_from_id (getVkItemMessage x))
         dict
 
-forHelp, forKb, listUpdWithKey :: [UPD] -> [UPD]
-forHelp = filter (\(VK x) -> m_text (getVkItemMessage x) == "/help")
+forHelp, forKb, listUpdWithKey :: [Event] -> [Event]
+forHelp = filter (\x -> m_text (getVkItemMessage x) == "/help")
 
-forKb = filter (\(VK x) -> m_text (getVkItemMessage x) == "/repeat")
+forKb = filter (\x -> m_text (getVkItemMessage x) == "/repeat")
 
-listUpdWithKey = filter (\(VK x) -> isJust (m_payload (getVkItemMessage x)))
+listUpdWithKey = filter (\x -> isJust (m_payload (getVkItemMessage x)))
 
 initBuildRequest :: Config -> Request
 initBuildRequest conf =
@@ -107,10 +107,10 @@ helpBuildRequest conf event = setRequestQueryString qi $ parseRequest_ appVK
       , ("v", Just "5.126")
       ]
 
-getUserAndNumRep :: [UPD] -> [(Int, Int)]
+getUserAndNumRep :: [Event] -> [(Int, Int)]
 getUserAndNumRep = map fgets
   where
-    fgets ~(VK x) = (m_from_id $ getVkItemMessage x, payload x)
+    fgets x = (m_from_id $ getVkItemMessage x, payload x)
     payload x = read $ fromMaybe "1" $ m_payload $ getVkItemMessage x :: Int
 
 getVkItemMessage :: Event -> VKItemMessage

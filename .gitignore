@@ -5,5 +5,6 @@ local_bot.conf
 bot.conf
 gitpush.bat
 telegram-vk-bot.cabal
-
+Type_Class UPD.hs
+.gitignore
 

@@ -1,11 +1,13 @@
 module Main where
 
--- import Bot
+import Bot
 import Services.Config
 import Services.Logger
+import Session
 
 import qualified Bot.Telegram as TL 
 import qualified Bot.VK as VK
+import qualified Data.Map as M
 import qualified Services.Impl.Configurator as SC
 import qualified Services.Impl.StdOut as SL
 
@@ -17,10 +19,12 @@ main = do
   logDebug
     hLogger
     (" -- configuration file bot.conf read:\n" ++ show conf)
-  botHandle <-
-    case сonfigApi conf of 
-      "vk" -> VK.newHandle conf
-      _ -> TL.newHandle conf
-  case сonfigApi conf of
-      "vk" -> VK.initSession botHandle hLogger conf
-      _    -> TL.initSession botHandle hLogger
+
+  case сonfigApi conf of 
+      "vk" -> do
+        handleVK <- VK.newHandle conf
+        VK.initSession handleVK hLogger conf
+      _ -> do
+        handleTl <- TL.newHandle conf
+        loopBot  handleTl hLogger (DataLoop (Session "" "" "0") [] M.empty "0")
+

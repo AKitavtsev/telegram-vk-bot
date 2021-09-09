@@ -20,8 +20,8 @@ import Services.Config
 import Services.Logger as SL
 import Session
 
---
-newHandle :: Config -> IO Bot.Handle
+
+newHandle :: Config -> IO (Bot.Handle Event)
 newHandle conf = do
   return $
     Bot.Handle
@@ -52,7 +52,7 @@ newHandle conf = do
         initSession botHandle hLogger conf
       let upds = fromJust $ a_updates answer
       logDebug hLogger (" List of Updates received = \n " ++ show upds)
-      return dl {updates = map VK upds, offset = newts}
+      return dl {updates = upds, offset = newts}
       where fromJust ~(Just x) = x
     copyMessagesVk hLogger dl = do
       mapM_ copyMessage $ forCopy upds conf dict
@@ -60,7 +60,7 @@ newHandle conf = do
       where
         upds = updates dl
         dict = dictionary dl
-        copyMessage ~(VK x) = do
+        copyMessage x = do
           let event = getVkItemMessage x
           logInfo hLogger (" to user " ++ show (m_from_id event))
           httpLBS $ echoBuildRequest conf event
@@ -70,7 +70,7 @@ newHandle conf = do
       where
         upds = updates dl
         dict = dictionary dl
-        sendMessageWithKb ~(VK x) = do
+        sendMessageWithKb x = do
           let event = getVkItemMessage x
           logInfo hLogger (" to user " ++ show (m_from_id event))
           httpLBS $ kbBuildRequest conf dict event
@@ -79,7 +79,7 @@ newHandle conf = do
       return dl
       where
         upds = updates dl
-        sendMessageWithHelp ~(VK x) = do
+        sendMessageWithHelp x = do
           let event = getVkItemMessage x
           logInfo hLogger (" to user " ++ show (m_from_id event))
           httpLBS $ helpBuildRequest conf event
@@ -92,7 +92,7 @@ newHandle conf = do
             (mapM_ changeMapInt $ getUserAndNumRep $ listUpdWithKey upds)
             dict
 
-initSession :: Bot.Handle -> SL.Handle -> Config -> IO ()
+initSession :: Bot.Handle a -> SL.Handle -> Config -> IO ()
 initSession botHandle hLogger conf = do
       resEither <- try (httpLBS $ initBuildRequest conf)
                  -- :: IO (Either SomeException (Response LBC.ByteString))

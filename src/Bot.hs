@@ -1,6 +1,8 @@
+{-# LANGUAGE RankNTypes #-}
+
 module Bot
   ( Bot.Handle(..)
-  , UPD(..)
+  -- , UPD(..)
   , DataLoop(..)
   , loopBot
   , messageOK
@@ -15,36 +17,34 @@ import Control.Monad.State
 import qualified Data.ByteString.Lazy.Char8 as LBC
 import Network.HTTP.Simple
 
-import Bot.Telegram.Types
-import Bot.VK.Types
+-- import Bot.Telegram.Types
+-- import Bot.VK.Types
 import Dictionary
 import Session
 
 import Services.Logger as SL
 
-data Handle =
-  Handle
-    { getUpdates :: Bot.Handle -> SL.Handle -> DataLoop -> IO DataLoop
-    , copyMessages :: SL.Handle -> DataLoop -> IO DataLoop
-    , sendMessagesWithKb :: SL.Handle -> DataLoop -> IO DataLoop
-    , sendMessagesWithHelp :: SL.Handle -> DataLoop -> IO DataLoop
-    , newDict :: DataLoop -> DataLoop
+data Handle a =
+  Handle 
+    { getUpdates :: Bot.Handle a -> SL.Handle -> DataLoop a -> IO (DataLoop a)
+    , copyMessages :: SL.Handle -> DataLoop a -> IO (DataLoop a)
+    , sendMessagesWithKb :: SL.Handle -> DataLoop a -> IO (DataLoop a) 
+    , sendMessagesWithHelp :: SL.Handle -> DataLoop a -> IO (DataLoop a)
+    , newDict :: DataLoop a -> DataLoop a
     }
 
-data UPD
-  = Tl Update
-  | VK Event
-  deriving (Show, Eq)
-
-data DataLoop =
+-- class Upd a where
+  -- user_id :: a -> Integer
+  
+data DataLoop a =
   DataLoop
     { session :: Session
-    , updates :: [UPD]
+    , updates :: [a]
     , dictionary :: MapInt
     , offset :: String
     }
 
-loopBot :: Bot.Handle -> SL.Handle -> DataLoop -> IO ()
+loopBot :: Bot.Handle a -> SL.Handle -> DataLoop a -> IO ()
 loopBot botHandle hLogger dl = do
   newDl <-
     getUpdates botHandle botHandle hLogger dl >>= copyMessages botHandle hLogger >>=

@@ -1,6 +1,5 @@
 module Bot.Telegram 
   ( newHandle
-  , initSession
   ) where
 
 import Control.Exception
@@ -12,12 +11,13 @@ import qualified Data.Map as M
 
 import Bot
 import Bot.Telegram.Internal
+import Bot.Telegram.Types
 import Dictionary
 import Services.Config
 import Services.Logger as SL
 import Session
 
-newHandle :: Config -> IO Bot.Handle
+newHandle :: Config -> IO (Bot.Handle Update)
 newHandle conf = do
   return $
     Bot.Handle
@@ -35,14 +35,14 @@ newHandle conf = do
       res <- messageOK res' hLogger
       let upds = listUpd (decode $ getResponseBody res)
       logDebug hLogger (" List of Updates received = \n " ++ show upds)
-      return dl {updates = map Tl upds, offset = newoffs upds}
+      return dl {updates = upds, offset = newoffs upds}
     copyMessagesTl hLogger dl = do
       mapM_ copyMessage $ forCopy upds conf dict
       return dl
       where
         upds = updates dl
         dict = dictionary dl
-        copyMessage ~(Tl x) = do
+        copyMessage x = do
           logInfo hLogger (" to user " ++ show (usId x))
           httpLBS $ echoBuildRequest conf x
     sendMessagesWithKbTl hLogger dl = do
@@ -51,7 +51,7 @@ newHandle conf = do
       where
         upds = updates dl
         dict = dictionary dl
-        sendMessageWithKb ~(Tl x) = do
+        sendMessageWithKb x = do
           logInfo hLogger (" to user " ++ show (usId x))
           httpLBS $ kbBuildRequest conf dict x
     sendMessagesWithHelpTl hLogger dl = do
@@ -59,7 +59,7 @@ newHandle conf = do
       return dl
       where
         upds = updates dl
-        sendMessageWithHelp ~(Tl x) = do
+        sendMessageWithHelp x = do
           logInfo hLogger (" to user " ++ show (usId x))
           httpLBS $ helpBuildRequest conf x
     newDictTl dl = dl {dictionary = dict'}
@@ -71,7 +71,3 @@ newHandle conf = do
             (mapM_ changeMapInt $ getUserAndNumRep $ listUpdWithKey upds)
             dict
 
-initSession :: Bot.Handle -> SL.Handle -> IO ()
-initSession botHandle hLogger = do
-  loopBot botHandle hLogger (DataLoop (Session "" "" "0") [] M.empty "0")
-  return ()
