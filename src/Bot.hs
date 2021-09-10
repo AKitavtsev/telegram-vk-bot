@@ -3,6 +3,7 @@
 module Bot
   ( Bot.Handle(..)
   , DataLoop(..)
+  , Upd (..)
   , loopBot
   , messageOK
   , testException
@@ -23,11 +24,10 @@ import Services.Logger as SL
 
 data Handle a =
   Handle 
-    { getUpdates :: Bot.Handle a -> SL.Handle -> DataLoop a -> IO (DataLoop a)
-    , copyMessages :: SL.Handle -> DataLoop a -> IO (DataLoop a)
-    , sendMessagesWithKb :: SL.Handle -> DataLoop a -> IO (DataLoop a) 
-    , sendMessagesWithHelp :: SL.Handle -> DataLoop a -> IO (DataLoop a)
-    , newDict :: DataLoop a -> DataLoop a
+    { getUpdates :: Upd a => Bot.Handle a -> SL.Handle -> DataLoop a -> IO (DataLoop a)
+    , copyMessages :: Upd a => SL.Handle -> DataLoop a -> IO (DataLoop a)
+    , sendMessagesWithKb :: Upd a => SL.Handle -> DataLoop a -> IO (DataLoop a) 
+    , sendMessagesWithHelp :: Upd a => SL.Handle -> DataLoop a -> IO (DataLoop a)
     }
   
 data DataLoop a =
@@ -38,13 +38,18 @@ data DataLoop a =
     , offset :: String
     }
 
-loopBot :: Bot.Handle a -> SL.Handle -> DataLoop a -> IO ()
+class Upd a where
+  -- user_id :: a -> Integer
+  getUserAndNumRep :: [a] -> [(Int, Int)]
+  listUpdWithKey :: [a] -> [a]
+  
+loopBot :: Upd a => Bot.Handle a -> SL.Handle -> DataLoop a -> IO ()
 loopBot botHandle hLogger dl = do
   newDl <-
     getUpdates botHandle botHandle hLogger dl >>= copyMessages botHandle hLogger >>=
     sendMessagesWithKb botHandle hLogger >>=
     sendMessagesWithHelp botHandle hLogger
-  loopBot botHandle hLogger (newDict botHandle newDl)
+  loopBot botHandle hLogger (newDict newDl)
 
 messageOK ::
      Response LBC.ByteString -> SL.Handle -> IO (Response LBC.ByteString)
@@ -73,4 +78,12 @@ testException rese
       -- initSession botHandle hLogger
       _ <- exitFailure
       httpLBS defaultRequest
---
+
+newDict :: Upd a => DataLoop a -> DataLoop a     
+newDict dl = dl {dictionary = dict'}
+  where
+    upds = updates dl
+    dict = dictionary dl
+    dict' = execState
+            (mapM_ changeMapInt $ getUserAndNumRep $ listUpdWithKey upds) dict
+

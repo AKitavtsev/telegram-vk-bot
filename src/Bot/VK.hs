@@ -15,7 +15,7 @@ import qualified Data.Map as M
 import Bot
 import Bot.VK.Internal
 import Bot.VK.Types
-import Dictionary
+-- import Dictionary
 import Services.Config
 import Services.Logger as SL
 import Session
@@ -29,7 +29,7 @@ newHandle conf = do
       , copyMessages = copyMessagesVk
       , sendMessagesWithKb = sendMessagesWithKbVK
       , sendMessagesWithHelp = sendMessagesWithHelpVK
-      , newDict = newDictVK
+      -- , newDict = newDictVK
       }
   where
     getUpdatesVk botHandle hLogger dl = do
@@ -82,16 +82,16 @@ newHandle conf = do
           let event = getVkItemMessage x
           logInfo hLogger (" to user " ++ show (m_from_id event))
           httpLBS $ helpBuildRequest conf event
-    newDictVK dl = dl {dictionary = dict'}
-      where
-        upds = updates dl
-        dict = dictionary dl
-        dict' =
-          execState
-            (mapM_ changeMapInt $ getUserAndNumRep $ listUpdWithKey upds)
-            dict
+    -- newDictVK dl = dl {dictionary = dict'}
+      -- where
+        -- upds = updates dl
+        -- dict = dictionary dl
+        -- dict' =
+          -- execState
+            -- (mapM_ changeMapInt $ getUserAndNumRep $ listUpdWithKey upds)
+            -- dict
 
-initSession :: Bot.Handle a -> SL.Handle -> Config -> IO ()
+initSession :: Upd a => Bot.Handle a -> SL.Handle -> Config -> IO ()
 initSession botHandle hLogger conf = do
       resEither <- try (httpLBS $ initBuildRequest conf)
                  -- :: IO (Either SomeException (Response LBC.ByteString))

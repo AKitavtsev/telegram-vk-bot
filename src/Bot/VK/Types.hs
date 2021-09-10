@@ -5,8 +5,10 @@
 module Bot.VK.Types where
 
 import Data.Aeson
+import Data.Maybe (fromMaybe, isJust)
 import GHC.Generics
 
+import Bot
 import JsonDrop
 import Session
 
@@ -42,6 +44,13 @@ data Event =
 
 instance FromJSON Event where
   parseJSON = parseJsonDrop 2
+  
+instance Upd Event where
+  getUserAndNumRep = map fgets
+    where
+      fgets x = (m_from_id $ m_message $ e_object x, payload x)
+      payload x = read $ fromMaybe "1" $ m_payload $  m_message $ e_object x :: Int 
+  listUpdWithKey = filter (\x -> isJust (m_payload (m_message $ e_object x)))
 
 newtype VKMessage =
   VKMessage

@@ -2,7 +2,7 @@
 
 module Bot.Telegram.Internal where
 
-import Data.Maybe (fromMaybe, isJust, isNothing)
+import Data.Maybe (isJust, isNothing, fromMaybe)
 import Network.HTTP.Simple
 
 import Data.Aeson
@@ -11,7 +11,7 @@ import qualified Data.ByteString.Lazy.Char8 as LBC
 import qualified Data.Map as M
 import qualified Data.Text as T
 
-import Bot
+import Bot ()
 import Bot.Telegram.Types
 import Dictionary
 import Services.Config
@@ -24,14 +24,14 @@ forCopy upds conf dict =
     repeating x = replicate (numRepeat x) x
     numRepeat x = M.findWithDefault (сonfigNumberRepeat conf) (usId x) dict
 
-forHelp, forKb, listUpdWithKey, listUpdWithMessage :: [Update] -> [Update]
+forHelp, forKb, listUpdWithMessage :: [Update] -> [Update]
 listUpdWithMessage = filter (\x -> isJust (message x))
 
 forHelp xs = filter (\x -> txt x == "/help") $ listUpdWithMessage xs
 
 forKb xs = filter (\x -> txt x == "/repeat") $ listUpdWithMessage xs
 
-listUpdWithKey = filter (\x -> isJust (callback_query x))
+-- listUpdWithKey = filter (\x -> isJust (callback_query x))
 
 eventBuildRequest :: Config -> String -> Request
 eventBuildRequest conf offs =
@@ -122,7 +122,7 @@ cbData upd | isNothing (callback_query upd) = ""
            | otherwise = fromMaybe "" (cq_data (fromJust $ callback_query upd))
   where fromJust ~(Just x) = x
 
-getUserAndNumRep :: [Update] -> [(Int, Int)]
-getUserAndNumRep = map fgets
-  where
-    fgets x = ((usId x), (read (cbData x) :: Int))
+-- getUserAndNumRep :: [Update] -> [(Int, Int)]
+-- getUserAndNumRep = map fgets
+  -- where
+    -- fgets x = ((usId x), (read (cbData x) :: Int))

@@ -3,13 +3,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Bot.Telegram.Types where
+
 import Data.Aeson.Types
+import Data.Maybe (isJust, fromMaybe, isNothing)
 import GHC.Generics
 
 import Data.Text (Text)
 
 import qualified Data.ByteString.Char8 as BC
 
+import Bot
 import JsonDrop
 
 appTelegram :: BC.ByteString
@@ -30,6 +33,18 @@ data Update =
     , callback_query :: Maybe CallbackQuery
     }
   deriving (FromJSON, Show, Eq, Generic)
+
+instance Upd Update where
+  getUserAndNumRep = map fgets
+    where
+      fgets x = ((usId x), (read (cbData x) :: Int))
+      usId upd = user_id 
+                   (if isNothing (message upd)
+                    then cq_from ( (\(Just x) -> x) $ callback_query upd)
+                    else (\(Just x) -> x) (Bot.Telegram.Types.from $ (\(Just x) -> x) $ message upd)
+                    ) 
+      cbData upd = fromMaybe "" (cq_data ((\(Just x) -> x) $ callback_query upd))
+  listUpdWithKey = filter (\x -> isJust (callback_query x))
 
 data Message =
   Message

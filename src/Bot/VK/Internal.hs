@@ -3,7 +3,7 @@
 --
 module Bot.VK.Internal where
 
-import Data.Maybe (isJust, isNothing, fromMaybe)
+import Data.Maybe (isNothing)
 import Network.HTTP.Simple
 
 import Data.Aeson
@@ -11,7 +11,7 @@ import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy.Char8 as LBC
 import qualified Data.Map as M
 
-import Bot
+import Bot ()
 import Bot.VK.Types
 import Dictionary
 import Services.Config
@@ -33,12 +33,12 @@ forCopy upds conf dict = concatMap repeating (filtred upds)
         (m_from_id (getVkItemMessage x))
         dict
 
-forHelp, forKb, listUpdWithKey :: [Event] -> [Event]
+forHelp, forKb :: [Event] -> [Event]
 forHelp = filter (\x -> m_text (getVkItemMessage x) == "/help")
 
 forKb = filter (\x -> m_text (getVkItemMessage x) == "/repeat")
 
-listUpdWithKey = filter (\x -> isJust (m_payload (getVkItemMessage x)))
+-- listUpdWithKey = filter (\x -> isJust (m_payload (getVkItemMessage x)))
 
 initBuildRequest :: Config -> Request
 initBuildRequest conf =
@@ -107,11 +107,11 @@ helpBuildRequest conf event = setRequestQueryString qi $ parseRequest_ appVK
       , ("v", Just "5.126")
       ]
 
-getUserAndNumRep :: [Event] -> [(Int, Int)]
-getUserAndNumRep = map fgets
-  where
-    fgets x = (m_from_id $ getVkItemMessage x, payload x)
-    payload x = read $ fromMaybe "1" $ m_payload $ getVkItemMessage x :: Int
+-- getUserAndNumRep :: [Event] -> [(Int, Int)]
+-- getUserAndNumRep = map fgets
+  -- where
+    -- fgets x = (m_from_id $ getVkItemMessage x, payload x)
+    -- payload x = read $ fromMaybe "1" $ m_payload $ getVkItemMessage x :: Int
 
 getVkItemMessage :: Event -> VKItemMessage
 getVkItemMessage e = m_message $ e_object e
