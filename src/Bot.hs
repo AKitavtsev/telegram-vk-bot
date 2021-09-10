@@ -12,15 +12,17 @@ module Bot
 import Control.Concurrent (threadDelay)
 import Control.Exception (SomeException)
 import System.Exit (exitFailure)
-
 import Control.Monad.State
-import qualified Data.ByteString.Lazy.Char8 as LBC
 import Network.HTTP.Simple
+
+import qualified Data.ByteString.Lazy.Char8 as LBC
+import qualified Data.Text as T
+
 
 import Dictionary
 import Session
-
 import Services.Logger as SL
+
 
 data Handle a =
   Handle 
@@ -39,14 +41,17 @@ data DataLoop a =
     }
 
 class Upd a where
-  -- user_id :: a -> Integer
+  usId :: a -> Int
+  mesId :: a -> Int
+  txt :: a -> T.Text
   getUserAndNumRep :: [a] -> [(Int, Int)]
   listUpdWithKey :: [a] -> [a]
   
 loopBot :: Upd a => Bot.Handle a -> SL.Handle -> DataLoop a -> IO ()
 loopBot botHandle hLogger dl = do
   newDl <-
-    getUpdates botHandle botHandle hLogger dl >>= copyMessages botHandle hLogger >>=
+    getUpdates botHandle botHandle hLogger dl >>=
+    copyMessages botHandle hLogger >>=
     sendMessagesWithKb botHandle hLogger >>=
     sendMessagesWithHelp botHandle hLogger
   loopBot botHandle hLogger (newDict newDl)

@@ -11,7 +11,7 @@ import qualified Data.ByteString.Lazy.Char8 as LBC
 import qualified Data.Map as M
 import qualified Data.Text as T
 
-import Bot ()
+import Bot (usId, mesId, txt)
 import Bot.Telegram.Types
 import Dictionary
 import Services.Config
@@ -98,29 +98,28 @@ listUpd :: Maybe UpdatesResponse -> [Update]
 listUpd (Just (TlResponse x)) = x
 listUpd Nothing = []
 
-usId :: Update -> Int
-usId upd | isNothing (message upd ) && isNothing (callback_query upd) = 0
-         | otherwise = user_id us
-  where
-    us  = if isNothing (message upd)
-          then cq_from (fromJust $ callback_query upd)
-          else fromJust (from $ fromJust $ message upd)
-    fromJust ~(Just x) = x
+-- usId :: Update -> Int
+-- usId upd | isNothing (message upd ) && isNothing (callback_query upd) = 0
+         -- | otherwise = user_id us
+  -- where
+    -- us  = if isNothing (message upd)
+          -- then cq_from (fromJust $ callback_query upd)
+          -- else fromJust (from $ fromJust $ message upd)
+    -- fromJust ~(Just x) = x
     
-mesId :: Update -> Int
-mesId upd | isNothing (message upd) = 0
-          | otherwise = message_id (fromJust $ message upd)
-  where fromJust ~(Just x) = x
+-- mesId :: Update -> Int
+-- mesId upd | isNothing (message upd) = 0
+          -- | otherwise = message_id (fromJust $ message upd)
+  -- where fromJust ~(Just x) = x
 
-txt :: Update -> T.Text
-txt upd | isNothing (message upd) = ""
-        | otherwise = fromMaybe "" (text (fromJust $ message upd))
-  where fromJust ~(Just x) = x
+-- txt :: Update -> T.Text
+-- txt upd | isNothing (message upd) = ""
+        -- | otherwise = fromMaybe "" (text $ (\(Just x) -> x) $ message upd)
 
-cbData :: Update -> String
-cbData upd | isNothing (callback_query upd) = ""
-           | otherwise = fromMaybe "" (cq_data (fromJust $ callback_query upd))
-  where fromJust ~(Just x) = x
+-- cbData :: Update -> String
+-- cbData upd | isNothing (callback_query upd) = ""
+           -- | otherwise = fromMaybe "" (cq_data $ ((\(Just x) -> x) $ callback_query upd))
+
 
 -- getUserAndNumRep :: [Update] -> [(Int, Int)]
 -- getUserAndNumRep = map fgets

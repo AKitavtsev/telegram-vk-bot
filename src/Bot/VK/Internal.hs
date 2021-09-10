@@ -11,7 +11,7 @@ import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy.Char8 as LBC
 import qualified Data.Map as M
 
-import Bot ()
+import Bot (txt)
 import Bot.VK.Types
 import Dictionary
 import Services.Config
@@ -23,8 +23,7 @@ forCopy upds conf dict = concatMap repeating (filtred upds)
     filtred =
       filter
         (\x ->
-           (m_text (getVkItemMessage x) /= "/repeat" &&
-            m_text (getVkItemMessage x) /= "/help") &&
+           (txt x /= "/repeat" && txt x /= "/help") &&
            isNothing (m_payload (getVkItemMessage x)))
     repeating x = replicate (numRepeat x) x
     numRepeat x =
@@ -34,9 +33,8 @@ forCopy upds conf dict = concatMap repeating (filtred upds)
         dict
 
 forHelp, forKb :: [Event] -> [Event]
-forHelp = filter (\x -> m_text (getVkItemMessage x) == "/help")
-
-forKb = filter (\x -> m_text (getVkItemMessage x) == "/repeat")
+forHelp = filter (\x -> txt x == "/help")
+forKb = filter (\x -> txt x == "/repeat")
 
 -- listUpdWithKey = filter (\x -> isJust (m_payload (getVkItemMessage x)))
 

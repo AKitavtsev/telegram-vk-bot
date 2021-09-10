@@ -8,6 +8,9 @@ import Data.Aeson
 import Data.Maybe (fromMaybe, isJust)
 import GHC.Generics
 
+-- import qualified Data.ByteString.Char8 as BC
+import qualified Data.Text as T
+
 import Bot
 import JsonDrop
 import Session
@@ -46,6 +49,9 @@ instance FromJSON Event where
   parseJSON = parseJsonDrop 2
   
 instance Upd Event where
+  usId e = m_from_id $ m_message $ e_object e
+  mesId e = m_id $ m_message $ e_object e
+  txt e = m_text $ m_message $ e_object e
   getUserAndNumRep = map fgets
     where
       fgets x = (m_from_id $ m_message $ e_object x, payload x)
@@ -65,8 +71,8 @@ data VKItemMessage =
   VKItemMessage
     { m_from_id :: Int
     , m_random_id :: Integer
-    , m_id :: Integer
-    , m_text :: String
+    , m_id :: Int
+    , m_text :: T.Text
     , m_payload :: Maybe String
     }
   deriving (Show, Eq, Generic)

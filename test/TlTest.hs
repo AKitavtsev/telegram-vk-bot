@@ -49,9 +49,6 @@ tlTest = hspec $ do
       describe "mesId" $ do
         it "returns message_id from Message" $
           mesId upMessage `shouldBe` 261
-      describe "cbData" $ do
-        it "returns data from CallbackQuery" $
-          cbData upCallbackQuery `shouldBe` "3"         
       describe "forKb" $ do
         it "queries with command /repeat" $ 
           forKb [upMessage, uPDR, uPDН, upCallbackQuery] `shouldBe` [uPDR]
