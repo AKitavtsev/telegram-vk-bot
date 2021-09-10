@@ -42,18 +42,17 @@ newHandle conf = do
       when (isNothing answerMaybe) $ do
         logWarning hLogger " -- requesting new values key and ts"
         initSession botHandle hLogger conf      
-      let answer = fromJust answerMaybe
+      let answer = (\(Just x) -> x) answerMaybe
       when (isNothing (a_ts answer)) $ do
         logWarning hLogger " -- requesting new values key and ts"
         initSession botHandle hLogger conf
-      let newts = fromJust $ a_ts answer
+      let newts =  (\(Just x) -> x) $ a_ts answer
       when (isNothing (a_updates answer)) $ do
         logWarning hLogger " -- requesting new values key and ts"
         initSession botHandle hLogger conf
-      let upds = fromJust $ a_updates answer
+      let upds = (\(Just x) -> x) $ a_updates answer
       logDebug hLogger (" List of Updates received = \n " ++ show upds)
       return dl {updates = upds, offset = newts}
-      where fromJust ~(Just x) = x
     copyMessagesVk hLogger dl = do
       mapM_ copyMessage $ forCopy upds conf dict
       return dl

@@ -61,6 +61,7 @@ data VKItemMessage =
     , m_payload :: Maybe String
     }
   deriving (Show, Eq, Generic)
+  
 
 instance FromJSON VKItemMessage where
   parseJSON = parseJsonDrop 2

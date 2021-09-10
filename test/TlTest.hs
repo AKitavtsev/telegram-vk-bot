@@ -29,8 +29,8 @@ tlTest = hspec $ do
                 Nothing
                 (Just (CallbackQuery "2079577882558908621" 
                       (User 484189457 False "Андрей")  (Just "3")))
-      uPDR = Tl (Update 146878330 (Just mess {text = (Just "/repeat")}) Nothing)
-      uPDН = Tl (Update 146878330 (Just mess {text = (Just "/help")}) Nothing)
+      uPDR = Update 146878330 (Just mess {text = (Just "/repeat")}) Nothing
+      uPDН = Update 146878330 (Just mess {text = (Just "/help")}) Nothing
       conf = Config INFO "" "123" "456"  1 "RepeatMe" "Help me!" 25
       sess = Session "" "" "0"
 
@@ -54,22 +54,22 @@ tlTest = hspec $ do
           cbData upCallbackQuery `shouldBe` "3"         
       describe "forKb" $ do
         it "queries with command /repeat" $ 
-          forKb [Tl upMessage, uPDR, uPDН, Tl upCallbackQuery] `shouldBe` [uPDR]
+          forKb [upMessage, uPDR, uPDН, upCallbackQuery] `shouldBe` [uPDR]
       describe "forHelp" $ do
         it "queries with command /help" $ 
-          forHelp [Tl upMessage, uPDR, uPDН, Tl upCallbackQuery] `shouldBe` [uPDН]          
+          forHelp [upMessage, uPDR, uPDН, upCallbackQuery] `shouldBe` [uPDН]          
       describe "listUpdWithKey" $ do
         it "answers to the reactions to the requests with the command /repeat" $
-              listUpdWithKey [Tl upMessage, uPDR, uPDН, Tl upCallbackQuery] 
-                `shouldBe` [Tl upCallbackQuery]
+              listUpdWithKey [upMessage, uPDR, uPDН, upCallbackQuery] 
+                `shouldBe` [upCallbackQuery]
       describe "forCopy" $ do
         it "all other requests including retries from the config" $
-          forCopy [Tl upMessage, uPDR, uPDН, Tl upCallbackQuery] conf M.empty
-            `shouldBe` [Tl upMessage]
+          forCopy [upMessage, uPDR, uPDН, upCallbackQuery] conf M.empty
+            `shouldBe` [upMessage]
         it "all other requests including retries from the dictionary" $
-          forCopy [Tl upMessage, uPDR, uPDН, Tl upCallbackQuery] 
+          forCopy [upMessage, uPDR, uPDН, upCallbackQuery] 
                   conf (M.fromList [(484189456,2)])
-                    `shouldBe` [Tl upMessage, Tl upMessage]     
+                    `shouldBe` [upMessage, upMessage]     
       describe "eventBuildRequest" $ do
         it "returns host" $
           host  (eventBuildRequest conf "999") `shouldBe` appTelegram
@@ -108,4 +108,4 @@ tlTest = hspec $ do
  
       describe "getUserAndNumRep" $ do
         it "returns [(User Id, number retries)]" $
-               getUserAndNumRep [Tl upCallbackQuery] `shouldBe` [(484189457, 3)]
+               getUserAndNumRep [upCallbackQuery] `shouldBe` [(484189457, 3)]

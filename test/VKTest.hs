@@ -27,9 +27,9 @@ vkTest :: IO ()
 vkTest = hspec $ do
     let vkIM = VKItemMessage 1 0 2 "1" Nothing
         event =   (Event "message_new" (VKMessage vkIM) 123456789)
-        eventR = VK (event {e_object = (VKMessage (vkIM {m_text = "/repeat"}))})
-        eventH = VK (event {e_object = (VKMessage (vkIM {m_text = "/help"}))})
-        eventP = VK (event {e_object = (VKMessage (vkIM {m_payload = Just "2"}))}) 
+        eventR = event {e_object = (VKMessage (vkIM {m_text = "/repeat"}))}
+        eventH = event {e_object = (VKMessage (vkIM {m_text = "/help"}))}
+        eventP = event {e_object = (VKMessage (vkIM {m_payload = Just "2"}))} 
         conf = Config INFO "" "123" "456" 1 "" "Help me!" 25
         sess = Session "1fb"
                        "https://lp.vk.com/wh202551745" "1000"
@@ -45,19 +45,19 @@ vkTest = hspec $ do
               m_payload  (getVkItemMessage event) `shouldBe` Nothing
         describe "forKb" $ do
             it "queries with command /repeat" $ 
-              forKb [(VK event), eventR, eventH, eventP] `shouldBe` [eventR]
+              forKb [event, eventR, eventH, eventP] `shouldBe` [eventR]
         describe "forHelp" $ do
             it "queries with command /help" $ 
-              forHelp [(VK event), eventR, eventH, eventP] `shouldBe` [eventH]          
+              forHelp [event, eventR, eventH, eventP] `shouldBe` [eventH]          
         describe "listUpdWithKey" $ do
             it "answers to the reactions to the requests with the command /repeat" $
-              listUpdWithKey [(VK event), eventR, eventH, eventP] `shouldBe` [eventP]
+              listUpdWithKey [event, eventR, eventH, eventP] `shouldBe` [eventP]
         describe "forCopy" $ do
             it "all other requests including retries from the config" $
-              forCopy [(VK event), eventR, eventH, eventP] conf M.empty `shouldBe` [VK event]
+              forCopy [event, eventR, eventH, eventP] conf M.empty `shouldBe` [event]
             it "all other requests including retries from the dictionary" $
-              forCopy [(VK event), eventR, eventH, eventP] conf (M.fromList [(1,2)])
-              `shouldBe` [VK event, VK event]
+              forCopy [event, eventR, eventH, eventP] conf (M.fromList [(1,2)])
+              `shouldBe` [event, event]
         describe "initBuildRequest" $ do
             it "returns host" $
                host (initBuildRequest conf) `shouldBe` "api.vk.com"

@@ -2,7 +2,6 @@
 
 module Bot
   ( Bot.Handle(..)
-  -- , UPD(..)
   , DataLoop(..)
   , loopBot
   , messageOK
@@ -17,8 +16,6 @@ import Control.Monad.State
 import qualified Data.ByteString.Lazy.Char8 as LBC
 import Network.HTTP.Simple
 
--- import Bot.Telegram.Types
--- import Bot.VK.Types
 import Dictionary
 import Session
 
@@ -32,9 +29,6 @@ data Handle a =
     , sendMessagesWithHelp :: SL.Handle -> DataLoop a -> IO (DataLoop a)
     , newDict :: DataLoop a -> DataLoop a
     }
-
--- class Upd a where
-  -- user_id :: a -> Integer
   
 data DataLoop a =
   DataLoop
