@@ -11,9 +11,8 @@ import qualified Data.ByteString.Lazy.Char8 as LBC
 import qualified Data.Map as M
 import qualified Data.Text as T
 
-import Bot (usId, mesId, txt)
+import Bot
 import Bot.Telegram.Types
-import Dictionary
 import Services.Config
 
 forCopy :: [Update] -> Config -> MapInt -> [Update]
@@ -30,8 +29,6 @@ listUpdWithMessage = filter (\x -> isJust (message x))
 forHelp xs = filter (\x -> txt x == "/help") $ listUpdWithMessage xs
 
 forKb xs = filter (\x -> txt x == "/repeat") $ listUpdWithMessage xs
-
--- listUpdWithKey = filter (\x -> isJust (callback_query x))
 
 eventBuildRequest :: Config -> String -> Request
 eventBuildRequest conf offs =
@@ -98,30 +95,3 @@ listUpd :: Maybe UpdatesResponse -> [Update]
 listUpd (Just (TlResponse x)) = x
 listUpd Nothing = []
 
--- usId :: Update -> Int
--- usId upd | isNothing (message upd ) && isNothing (callback_query upd) = 0
-         -- | otherwise = user_id us
-  -- where
-    -- us  = if isNothing (message upd)
-          -- then cq_from (fromJust $ callback_query upd)
-          -- else fromJust (from $ fromJust $ message upd)
-    -- fromJust ~(Just x) = x
-    
--- mesId :: Update -> Int
--- mesId upd | isNothing (message upd) = 0
-          -- | otherwise = message_id (fromJust $ message upd)
-  -- where fromJust ~(Just x) = x
-
--- txt :: Update -> T.Text
--- txt upd | isNothing (message upd) = ""
-        -- | otherwise = fromMaybe "" (text $ (\(Just x) -> x) $ message upd)
-
--- cbData :: Update -> String
--- cbData upd | isNothing (callback_query upd) = ""
-           -- | otherwise = fromMaybe "" (cq_data $ ((\(Just x) -> x) $ callback_query upd))
-
-
--- getUserAndNumRep :: [Update] -> [(Int, Int)]
--- getUserAndNumRep = map fgets
-  -- where
-    -- fgets x = ((usId x), (read (cbData x) :: Int))

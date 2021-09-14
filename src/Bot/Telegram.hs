@@ -34,6 +34,8 @@ newHandle conf = do
       res' <- testException resEither hLogger
       res <- messageOK res' hLogger
       let upds = listUpd (decode $ getResponseBody res)
+      
+      
       logDebug hLogger (" List of Updates received = \n " ++ show upds)
       return dl {updates = upds, offset = newoffs upds}
     copyMessagesTl hLogger dl = do

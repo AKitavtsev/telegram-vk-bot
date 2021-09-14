@@ -8,12 +8,10 @@ import Data.Aeson
 import Data.Maybe (fromMaybe, isJust)
 import GHC.Generics
 
--- import qualified Data.ByteString.Char8 as BC
 import qualified Data.Text as T
 
 import Bot
 import JsonDrop
-import Session
 
 appVK :: String
 appVK = "https://api.vk.com/method/messages.send"

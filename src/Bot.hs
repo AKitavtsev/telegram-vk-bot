@@ -1,9 +1,14 @@
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
 
 module Bot
   ( Bot.Handle(..)
   , DataLoop(..)
-  , Upd (..)
+  , Upd(..)
+  , Session(..)
+  , MapInt(..)
+  , newDict
   , loopBot
   , messageOK
   , testException
@@ -11,27 +16,41 @@ module Bot
 
 import Control.Concurrent (threadDelay)
 import Control.Exception (SomeException)
-import System.Exit (exitFailure)
-import Control.Monad.State
+import Control.Monad (when)
+import Data.Aeson
+import GHC.Generics
 import Network.HTTP.Simple
+import System.Exit (exitFailure)
 
 import qualified Data.ByteString.Lazy.Char8 as LBC
+import qualified Data.Map as M
 import qualified Data.Text as T
 
-
-import Dictionary
-import Session
+-- import Session
 import Services.Logger as SL
 
-
 data Handle a =
-  Handle 
-    { getUpdates :: Upd a => Bot.Handle a -> SL.Handle -> DataLoop a -> IO (DataLoop a)
-    , copyMessages :: Upd a => SL.Handle -> DataLoop a -> IO (DataLoop a)
-    , sendMessagesWithKb :: Upd a => SL.Handle -> DataLoop a -> IO (DataLoop a) 
-    , sendMessagesWithHelp :: Upd a => SL.Handle -> DataLoop a -> IO (DataLoop a)
+  Handle
+    { getUpdates :: Upd a =>
+                      Bot.Handle a -> SL.Handle -> DataLoop a -> IO (DataLoop a)
+    , copyMessages :: Upd a =>
+                        SL.Handle -> DataLoop a -> IO (DataLoop a)
+    , sendMessagesWithKb :: Upd a =>
+                              SL.Handle -> DataLoop a -> IO (DataLoop a)
+    , sendMessagesWithHelp :: Upd a =>
+                                SL.Handle -> DataLoop a -> IO (DataLoop a)
     }
-  
+
+data Session =
+  Session
+    { key :: String
+    , server :: String
+    , ts :: String
+    }
+  deriving (FromJSON, Show, Generic, Eq)
+
+type MapInt = M.Map Int Int
+
 data DataLoop a =
   DataLoop
     { session :: Session
@@ -39,6 +58,7 @@ data DataLoop a =
     , dictionary :: MapInt
     , offset :: String
     }
+  deriving (Show, Eq)
 
 class Upd a where
   usId :: a -> Int
@@ -46,12 +66,11 @@ class Upd a where
   txt :: a -> T.Text
   getUserAndNumRep :: [a] -> [(Int, Int)]
   listUpdWithKey :: [a] -> [a]
-  
+
 loopBot :: Upd a => Bot.Handle a -> SL.Handle -> DataLoop a -> IO ()
 loopBot botHandle hLogger dl = do
   newDl <-
-    getUpdates botHandle botHandle hLogger dl >>=
-    copyMessages botHandle hLogger >>=
+    getUpdates botHandle botHandle hLogger dl >>= copyMessages botHandle hLogger >>=
     sendMessagesWithKb botHandle hLogger >>=
     sendMessagesWithHelp botHandle hLogger
   loopBot botHandle hLogger (newDict newDl)
@@ -70,9 +89,7 @@ testException ::
   -- -> Bot.Handle
   -> SL.Handle
   -> IO (Response LBC.ByteString)
-testException rese  
--- botHandle 
-              hLogger = do
+testException rese hLogger = do
   case rese of
     Right val -> return val
     Left _ -> do
@@ -84,11 +101,9 @@ testException rese
       _ <- exitFailure
       httpLBS defaultRequest
 
-newDict :: Upd a => DataLoop a -> DataLoop a     
-newDict dl = dl {dictionary = dict'}
+newDict :: Upd a => DataLoop a -> DataLoop a
+newDict dl = dl {dictionary = dict}
   where
-    upds = updates dl
-    dict = dictionary dl
-    dict' = execState
-            (mapM_ changeMapInt $ getUserAndNumRep $ listUpdWithKey upds) dict
-
+    dict = updateDictionary (dictionary dl) $ getUserAndNumRep (updates dl)
+    updateDictionary d [] = d
+    updateDictionary d ((k, v):xs) = updateDictionary (M.insert k v d) xs

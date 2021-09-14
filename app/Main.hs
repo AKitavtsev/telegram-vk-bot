@@ -3,7 +3,6 @@ module Main where
 import Bot
 import Services.Config
 import Services.Logger
-import Session
 
 import qualified Bot.Telegram as TL 
 import qualified Bot.VK as VK

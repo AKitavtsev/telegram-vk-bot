@@ -15,9 +15,7 @@ import qualified Data.Map as M
 import Services.Config
 import Services.Types (Priority(..))
 import Bot.VK.Types
-import Dictionary
 import Bot.VK
-import Session
 import Services.Logger
 import Bot
 import Bot.VK.Internal
@@ -49,9 +47,6 @@ vkTest = hspec $ do
         describe "forHelp" $ do
             it "queries with command /help" $ 
               forHelp [event, eventR, eventH, eventP] `shouldBe` [eventH]          
-        describe "listUpdWithKey" $ do
-            it "answers to the reactions to the requests with the command /repeat" $
-              listUpdWithKey [event, eventR, eventH, eventP] `shouldBe` [eventP]
         describe "forCopy" $ do
             it "all other requests including retries from the config" $
               forCopy [event, eventR, eventH, eventP] conf M.empty `shouldBe` [event]
@@ -101,7 +96,20 @@ vkTest = hspec $ do
             it "returns queryString with number retries from the dictionary" $
                queryString  (kbBuildRequest conf (M.fromList [(1,2)]) vkIM) `shouldBe`
                "?user_id=1&random_id=0&message=2&keyboard=%7B%22buttons%22%3A%5B%5B%7B%22color%22%3A%22primary%22%2C%22action%22%3A%7B%22payload%22%3A%221%22%2C%22type%22%3A%22text%22%2C%22label%22%3A%221%22%7D%7D%2C%7B%22color%22%3A%22primary%22%2C%22action%22%3A%7B%22payload%22%3A%222%22%2C%22type%22%3A%22text%22%2C%22label%22%3A%222%22%7D%7D%2C%7B%22color%22%3A%22primary%22%2C%22action%22%3A%7B%22payload%22%3A%223%22%2C%22type%22%3A%22text%22%2C%22label%22%3A%223%22%7D%7D%2C%7B%22color%22%3A%22primary%22%2C%22action%22%3A%7B%22payload%22%3A%224%22%2C%22type%22%3A%22text%22%2C%22label%22%3A%224%22%7D%7D%2C%7B%22color%22%3A%22primary%22%2C%22action%22%3A%7B%22payload%22%3A%225%22%2C%22type%22%3A%22text%22%2C%22label%22%3A%225%22%7D%7D%5D%5D%2C%22inline%22%3Atrue%2C%22one_time%22%3Afalse%7D&access_token=456&v=5.126"
-        describe "getUserAndNumRep" $ do
+    describe "VK.Types (instance Upd)" $ do
+      describe "usId" $ do
+        it "returns user_id from VKItemMessage" $
+          usId event `shouldBe` 1
+      describe "txt" $ do
+        it "returns text from VKItemMessage" $
+          txt event `shouldBe` "1"          
+      describe "mesId" $ do
+        it "returns message_id from VKItemMessage" $
+          mesId event `shouldBe` 2
+      describe "listUpdWithKey" $ do
+            it "answers to the reactions to the requests with the command /repeat" $
+              listUpdWithKey [event, eventR, eventH, eventP] `shouldBe` [eventP]
+      describe "getUserAndNumRep" $ do
             it "returns [(User Id, number retries)]" $
                getUserAndNumRep [eventP] `shouldBe` [(1, 2)]
 

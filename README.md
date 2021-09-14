@@ -41,8 +41,6 @@ stack test
 - `src/` - contains all the code used by this service.
     - `Bot.hs` -  bot logic.
 	- `JsonDrop.hs` - functions used during deserialization and serialization.
-	- `Dictionary.hs` - dictionary maintenance.
-    - `Session`	- description of the type `Session` used in all implementations of the bot
 	- `Bot/` - possible bot implementations.
     - `Serveces/` - сonfig and logger services.
       - `Impl/` - сonfig and logger services implementations.

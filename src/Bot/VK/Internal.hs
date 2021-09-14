@@ -1,6 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
 
---
 module Bot.VK.Internal where
 
 import Data.Maybe (isNothing)
@@ -11,11 +10,9 @@ import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy.Char8 as LBC
 import qualified Data.Map as M
 
-import Bot (txt)
+import Bot
 import Bot.VK.Types
-import Dictionary
 import Services.Config
-import Session
 
 forCopy :: [Event] -> Config -> MapInt -> [Event]
 forCopy upds conf dict = concatMap repeating (filtred upds)
@@ -35,8 +32,6 @@ forCopy upds conf dict = concatMap repeating (filtred upds)
 forHelp, forKb :: [Event] -> [Event]
 forHelp = filter (\x -> txt x == "/help")
 forKb = filter (\x -> txt x == "/repeat")
-
--- listUpdWithKey = filter (\x -> isJust (m_payload (getVkItemMessage x)))
 
 initBuildRequest :: Config -> Request
 initBuildRequest conf =
@@ -104,12 +99,6 @@ helpBuildRequest conf event = setRequestQueryString qi $ parseRequest_ appVK
       , ("access_token", Just (BC.pack $ сonfigToken conf))
       , ("v", Just "5.126")
       ]
-
--- getUserAndNumRep :: [Event] -> [(Int, Int)]
--- getUserAndNumRep = map fgets
-  -- where
-    -- fgets x = (m_from_id $ getVkItemMessage x, payload x)
-    -- payload x = read $ fromMaybe "1" $ m_payload $ getVkItemMessage x :: Int
 
 getVkItemMessage :: Event -> VKItemMessage
 getVkItemMessage e = m_message $ e_object e
