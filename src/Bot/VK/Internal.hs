@@ -14,7 +14,7 @@ import Bot
 import Bot.VK.Types
 import Services.Config
 
-forCopy :: [Event] -> Config -> MapInt -> [Event]
+forCopy :: [Event] -> Config -> UserRepetition -> [Event]
 forCopy upds conf dict = concatMap repeating (filtred upds)
   where
     filtred =
@@ -67,7 +67,7 @@ echoBuildRequest conf event = setRequestQueryString qi $ parseRequest_ appVK
       , ("v", Just "5.126")
       ]
 
-kbBuildRequest :: Config -> MapInt -> VKItemMessage -> Request
+kbBuildRequest :: Config -> UserRepetition -> VKItemMessage -> Request
 kbBuildRequest conf dict event = setRequestQueryString qi $ parseRequest_ appVK
   where
     qi =

@@ -7,7 +7,7 @@ module Bot
   , DataLoop(..)
   , Upd(..)
   , Session(..)
-  , MapInt(..)
+  , UserRepetition(..)
   , newDict
   , loopBot
   , messageOK
@@ -48,13 +48,13 @@ data Session =
     }
   deriving (FromJSON, Show, Generic, Eq)
 
-type MapInt = M.Map Int Int
+type UserRepetition = M.Map Int Int
 
 data DataLoop a =
   DataLoop
     { session :: Session
     , updates :: [a]
-    , dictionary :: MapInt
+    , dictionary :: UserRepetition
     , offset :: String
     }
   deriving (Show, Eq)

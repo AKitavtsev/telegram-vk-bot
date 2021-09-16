@@ -15,7 +15,7 @@ import Bot
 import Bot.Telegram.Types
 import Services.Config
 
-forCopy :: [Update] -> Config -> MapInt -> [Update]
+forCopy :: [Update] -> Config -> UserRepetition -> [Update]
 forCopy upds conf dict = concatMap repeating (filtred $ listUpdWithMessage upds)
   where
     filtred = filter (\x -> txt x /= "/repeat" && txt x /= "/help")
@@ -52,7 +52,7 @@ echoBuildRequest conf upd =
       , ("message_id", Just $ BC.pack (show $ mesId upd))
       ]
 
-kbBuildRequest :: Config -> MapInt -> Update -> Request
+kbBuildRequest :: Config -> UserRepetition -> Update -> Request
 kbBuildRequest conf dict upd =
   setRequestHost appTelegram $
   setRequestPath (BC.pack $ сonfigToken conf ++ "/sendMessage") $

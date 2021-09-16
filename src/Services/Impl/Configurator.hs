@@ -70,7 +70,6 @@ newHandle = do
           return ""
 
 wrongToken :: String -> Bool
-wrongToken _ = False
 wrongToken ('b':'o':'t':xs) = length xs /= 46
 wrongToken _ = True
 
