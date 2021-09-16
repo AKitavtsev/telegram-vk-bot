@@ -31,6 +31,7 @@ forCopy upds conf dict = concatMap repeating (filtred upds)
 
 forHelp, forKb :: [Event] -> [Event]
 forHelp = filter (\x -> txt x == "/help")
+
 forKb = filter (\x -> txt x == "/repeat")
 
 initBuildRequest :: Config -> Request

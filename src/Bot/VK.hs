@@ -6,7 +6,7 @@ module Bot.VK
 import Control.Exception
 import Control.Monad.State
 import Data.Aeson
-import Data.Maybe (isNothing)
+import Data.Maybe (fromMaybe, isNothing)
 import Network.HTTP.Simple
 import System.Exit
 
@@ -34,19 +34,15 @@ newHandle conf = do
       resEither <- try (httpLBS $ eventBuildRequest sess conf offs)
       res' <- testException resEither hLogger
       res <- messageOK res' hLogger
-      let answerMaybe = (decode $ getResponseBody res) :: Maybe Answer
-      when (isNothing answerMaybe) $ do
-        logWarning hLogger " -- requesting new values key and ts"
-        initSession botHandle hLogger conf      
-      let answer = (\(Just x) -> x) answerMaybe
-      when (isNothing (a_ts answer)) $ do
-        logWarning hLogger " -- requesting new values key and ts"
-        initSession botHandle hLogger conf
-      let newts =  (\(Just x) -> x) $ a_ts answer
-      when (isNothing (a_updates answer)) $ do
+      let answer =
+            fromMaybe
+              (Answer Nothing Nothing Nothing)
+              ((decode $ getResponseBody res) :: Maybe Answer)
+          newts = fromMaybe "" (a_ts answer)
+          upds = fromMaybe [] (a_updates answer)
+      when (newts == "") $ do
         logWarning hLogger " -- requesting new values key and ts"
         initSession botHandle hLogger conf
-      let upds = (\(Just x) -> x) $ a_updates answer
       logDebug hLogger (" List of Updates received = \n " ++ show upds)
       return dl {updates = upds, offset = newts}
     copyMessagesVk hLogger dl = do
@@ -81,24 +77,20 @@ newHandle conf = do
 
 initSession :: Upd a => Bot.Handle a -> SL.Handle -> Config -> IO ()
 initSession botHandle hLogger conf = do
-      resEither <- try (httpLBS $ initBuildRequest conf)
+  resEither <- try (httpLBS $ initBuildRequest conf)
                  -- :: IO (Either SomeException (Response LBC.ByteString))
-      res <- testException resEither hLogger
-      let rsc = getResponseStatusCode res
-      when (rsc /= 200) $ do
-        logError hLogger ("-- status code of response " ++ show rsc)
-        exitFailure
-      let sessionJson = getResponseBody res
-      let sessionR = decode sessionJson :: Maybe SessionResponse
-      case sessionR of
-        (Just (VKResponse x)) -> do
-          logDebug
-            hLogger
-            ("-- initialized session with parameters:\n" ++ show x)
- -- loopBot  handleTl hLogger (DataLoop (Session "" "" "0") [] M.empty "0")           
-          loopBot botHandle hLogger (DataLoop x [] M.empty $ ts x)
-          return ()
-        Nothing -> do
-          logError hLogger " -- Wrong vkToken or groupId"
-          exitFailure
---
+  res <- testException resEither hLogger
+  let rsc = getResponseStatusCode res
+  when (rsc /= 200) $ do
+    logError hLogger ("-- status code of response " ++ show rsc)
+    exitFailure
+  let sessionJson = getResponseBody res
+  let sessionR = decode sessionJson :: Maybe SessionResponse
+  case sessionR of
+    (Just (VKResponse x)) -> do
+      logDebug hLogger ("-- initialized session with parameters:\n" ++ show x)
+      loopBot botHandle hLogger (DataLoop x [] M.empty $ ts x)
+      return ()
+    Nothing -> do
+      logError hLogger " -- Wrong vkToken or groupId"
+      exitFailure

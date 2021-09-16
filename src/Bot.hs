@@ -26,7 +26,6 @@ import qualified Data.ByteString.Lazy.Char8 as LBC
 import qualified Data.Map as M
 import qualified Data.Text as T
 
--- import Session
 import Services.Logger as SL
 
 data Handle a =
@@ -104,6 +103,6 @@ testException rese hLogger = do
 newDict :: Upd a => DataLoop a -> DataLoop a
 newDict dl = dl {dictionary = dict}
   where
-    dict = updateDictionary (dictionary dl) $ getUserAndNumRep (updates dl)
+    dict = updateDictionary (dictionary dl) $ getUserAndNumRep (listUpdWithKey $ updates dl)
     updateDictionary d [] = d
     updateDictionary d ((k, v):xs) = updateDictionary (M.insert k v d) xs

@@ -71,8 +71,8 @@ newHandle = do
 
 wrongToken :: String -> Bool
 wrongToken _ = False
--- wrongToken ('b':'o':'t':xs) = length xs /= 46
--- wrongToken _ = True
+wrongToken ('b':'o':'t':xs) = length xs /= 46
+wrongToken _ = True
 
 vkWrongToken :: String -> Bool
 vkWrongToken xs = not (length xs == 85 && foldl f True xs)

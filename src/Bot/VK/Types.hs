@@ -7,6 +7,7 @@ module Bot.VK.Types where
 import Data.Aeson
 import Data.Maybe (fromMaybe, isJust)
 import GHC.Generics
+import Text.Read (readMaybe)
 
 import qualified Data.Text as T
 
@@ -45,7 +46,7 @@ data Event =
 
 instance FromJSON Event where
   parseJSON = parseJsonDrop 2
-  
+
 instance Upd Event where
   usId e = m_from_id $ m_message $ e_object e
   mesId e = m_id $ m_message $ e_object e
@@ -53,7 +54,10 @@ instance Upd Event where
   getUserAndNumRep = map fgets
     where
       fgets x = (m_from_id $ m_message $ e_object x, payload x)
-      payload x = read $ fromMaybe "1" $ m_payload $  m_message $ e_object x :: Int 
+      payload x =
+        fromMaybe
+          0
+          (readMaybe $ fromMaybe "0" $ m_payload $ m_message $ e_object x :: Maybe Int)
   listUpdWithKey = filter (\x -> isJust (m_payload (m_message $ e_object x)))
 
 newtype VKMessage =
@@ -74,7 +78,6 @@ data VKItemMessage =
     , m_payload :: Maybe String
     }
   deriving (Show, Eq, Generic)
-  
 
 instance FromJSON VKItemMessage where
   parseJSON = parseJsonDrop 2

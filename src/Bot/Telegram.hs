@@ -1,22 +1,20 @@
-module Bot.Telegram 
+module Bot.Telegram
   ( newHandle
   ) where
 
 import Control.Exception
--- import Control.Monad.State
+
 import Data.Aeson
 import Network.HTTP.Simple
-
--- import qualified Data.Map as M
 
 import Bot
 import Bot.Telegram.Internal
 import Bot.Telegram.Types
--- import Dictionary
+
 import Services.Config
 import Services.Logger as SL
--- import Session
---
+
+
 newHandle :: Config -> IO (Bot.Handle Update)
 newHandle conf = do
   return $
@@ -25,7 +23,6 @@ newHandle conf = do
       , copyMessages = copyMessagesTl
       , sendMessagesWithKb = sendMessagesWithKbTl
       , sendMessagesWithHelp = sendMessagesWithHelpTl
-      -- , newDict = newDictTl
       }
   where
     getUpdatesTl botHandle hLogger dl = do
@@ -34,8 +31,6 @@ newHandle conf = do
       res' <- testException resEither hLogger
       res <- messageOK res' hLogger
       let upds = listUpd (decode $ getResponseBody res)
-      
-      
       logDebug hLogger (" List of Updates received = \n " ++ show upds)
       return dl {updates = upds, offset = newoffs upds}
     copyMessagesTl hLogger dl = do
@@ -64,12 +59,3 @@ newHandle conf = do
         sendMessageWithHelp x = do
           logInfo hLogger (" to user " ++ show (usId x))
           httpLBS $ helpBuildRequest conf x
-    -- newDictTl dl = dl {dictionary = dict'}
-      -- where
-        -- upds = updates dl
-        -- dict = dictionary dl
-        -- dict' =
-          -- execState
-            -- (mapM_ changeMapInt $ getUserAndNumRep $ listUpdWithKey upds)
-            -- dict
-

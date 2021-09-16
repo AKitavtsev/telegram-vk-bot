@@ -4,11 +4,12 @@
 
 module Bot.Telegram.Types where
 
+import Control.Applicative ((<|>))
 import Data.Aeson.Types
-import Data.Maybe (isJust, fromMaybe, isNothing)
-import GHC.Generics
-
+import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Text (Text)
+import GHC.Generics
+import Text.Read (readMaybe)
 
 import qualified Data.ByteString.Char8 as BC
 
@@ -35,23 +36,37 @@ data Update =
   deriving (FromJSON, Show, Eq, Generic)
 
 instance Upd Update where
-  usId upd = user_id 
-               (if isNothing (message upd)
-                then cq_from ( (\(Just x) -> x) $ callback_query upd)
-                else (\(Just x) -> x) (Bot.Telegram.Types.from $ (\(Just x) -> x) $ message upd)
-                ) 
-  mesId upd = message_id ((\(Just x) -> x) $ message upd)  
-  txt upd  = fromMaybe "" (text $ (\(Just x) -> x) $ message upd)
+  usId upd = fromMaybe 0 (testMessage <|> testCallbackQuery)
+    where
+      testMessage =
+        case message upd of
+          Nothing -> Nothing
+          Just (Message _ from _) -> Just $ user_id from
+      testCallbackQuery =
+        case callback_query upd of
+          Nothing -> Nothing
+          Just (CallbackQuery _ from _) -> Just $ user_id from
+  mesId upd =
+    case message upd of
+      Nothing -> 0
+      Just (Message message_id _ _) -> message_id
+  txt upd =
+    case message upd of
+      Nothing -> ""
+      Just (Message _ _ text) -> fromMaybe "" text
   getUserAndNumRep = map fgets
     where
-      fgets x = ((usId x), (read (cbData x) :: Int))
-      cbData upd = fromMaybe "" (cq_data ((\(Just x) -> x) $ callback_query upd))
-  listUpdWithKey = filter (\x -> isJust (callback_query x))
+      fgets x = (usId x, fromMaybe 0 (readMaybe (cbData x) :: Maybe Int))
+      cbData upd =
+        case callback_query upd of
+          Nothing -> ""
+          Just (CallbackQuery _ _ d) -> fromMaybe "" d
+  listUpdWithKey = filter (isJust . callback_query)
 
 data Message =
   Message
     { message_id :: Int
-    , from :: Maybe User
+    , from :: User
     , text :: Maybe Text
     }
   deriving (FromJSON, ToJSON, Show, Eq, Generic)
@@ -72,9 +87,9 @@ instance FromJSON CallbackQuery where
 
 data User =
   User
-    { user_id :: Int 
-    , user_is_bot :: Bool 
-    , user_first_name :: Text 
+    { user_id :: Int
+    , user_is_bot :: Bool
+    , user_first_name :: Text
     }
   deriving (Show, Eq, Generic)
 

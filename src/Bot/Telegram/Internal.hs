@@ -2,7 +2,7 @@
 
 module Bot.Telegram.Internal where
 
-import Data.Maybe (isJust, isNothing, fromMaybe)
+import Data.Maybe (fromMaybe, isJust, isNothing)
 import Network.HTTP.Simple
 
 import Data.Aeson
@@ -16,15 +16,14 @@ import Bot.Telegram.Types
 import Services.Config
 
 forCopy :: [Update] -> Config -> MapInt -> [Update]
-forCopy upds conf dict =
-  concatMap repeating (filtred $ listUpdWithMessage upds)
+forCopy upds conf dict = concatMap repeating (filtred $ listUpdWithMessage upds)
   where
     filtred = filter (\x -> txt x /= "/repeat" && txt x /= "/help")
     repeating x = replicate (numRepeat x) x
     numRepeat x = M.findWithDefault (сonfigNumberRepeat conf) (usId x) dict
 
 forHelp, forKb, listUpdWithMessage :: [Update] -> [Update]
-listUpdWithMessage = filter (\x -> isJust (message x))
+listUpdWithMessage = filter (isJust . message)
 
 forHelp xs = filter (\x -> txt x == "/help") $ listUpdWithMessage xs
 
@@ -94,4 +93,3 @@ newoffs x = show $ update_id (last x) + 1
 listUpd :: Maybe UpdatesResponse -> [Update]
 listUpd (Just (TlResponse x)) = x
 listUpd Nothing = []
-

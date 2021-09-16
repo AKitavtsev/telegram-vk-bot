@@ -1,6 +1,6 @@
 module Services.Config
   ( Handle(..)
-  , Config (..)
+  , Config(..)
   ) where
 
 import Services.Types (Priority(..))

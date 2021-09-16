@@ -21,7 +21,7 @@ import Bot.Telegram.Internal
 tlTest :: IO ()
 tlTest = hspec $ do
   let mess = (Message 261
-                      (Just (User 484189456 False "Андрей")) (Just "222"))
+                      (User 484189456 False "Андрей") (Just "222"))
       upMessage = Update 146878330 (Just mess) Nothing
       upCallbackQuery = Update 146878330
                         Nothing
