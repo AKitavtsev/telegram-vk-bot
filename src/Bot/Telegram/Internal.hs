@@ -9,7 +9,6 @@ import Data.Aeson
 import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy.Char8 as LBC
 import qualified Data.Map as M
-import qualified Data.Text as T
 
 import Bot
 import Bot.Telegram.Types

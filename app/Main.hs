@@ -3,6 +3,7 @@ module Main where
 import Bot
 import Services.Config
 import Services.Logger
+import Services.Types
 
 import qualified Bot.Telegram as TL 
 import qualified Bot.VK as VK
@@ -20,10 +21,10 @@ main = do
     (" -- configuration file bot.conf read:\n" ++ show conf)
 
   case сonfigApi conf of 
-      "vk" -> do
+      VK -> do
         handleVK <- VK.newHandle conf
         VK.initSession handleVK hLogger conf
-      _ -> do
+      TELEGRAM -> do
         handleTl <- TL.newHandle conf
         loopBot  handleTl hLogger (DataLoop (Session "" "" "0") [] M.empty "0")
 

@@ -3,7 +3,7 @@ module Services.Config
   , Config(..)
   ) where
 
-import Services.Types (Priority(..))
+import Services.Types
 
 newtype Handle =
   Handle
@@ -13,7 +13,7 @@ newtype Handle =
 data Config =
   Config
     { levelLog :: !Priority
-    , сonfigApi :: !String
+    , сonfigApi :: !Api
     , groupId :: !String
     , сonfigToken :: !String
     , сonfigNumberRepeat :: !Int

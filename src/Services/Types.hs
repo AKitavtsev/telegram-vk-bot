@@ -1,6 +1,5 @@
 module Services.Types
-  ( Priority(..)
-  ) where
+  where
 
 --
 data Priority
@@ -12,4 +11,9 @@ data Priority
   | WARN
       -- | Something is wrong and immediate action is required.
   | ERROR
+  deriving (Eq, Ord, Show)
+
+data Api
+  = TELEGRAM
+  | VK
   deriving (Eq, Ord, Show)

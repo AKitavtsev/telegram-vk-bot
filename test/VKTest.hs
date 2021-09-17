@@ -13,7 +13,7 @@ import qualified Data.ByteString.Lazy.Char8 as LBC
 import qualified Data.Map as M
 
 import Services.Config
-import Services.Types (Priority(..))
+import Services.Types
 import Bot.VK.Types
 import Bot.VK
 import Services.Logger
@@ -28,7 +28,7 @@ vkTest = hspec $ do
         eventR = event {e_object = (VKMessage (vkIM {m_text = "/repeat"}))}
         eventH = event {e_object = (VKMessage (vkIM {m_text = "/help"}))}
         eventP = event {e_object = (VKMessage (vkIM {m_payload = Just "2"}))} 
-        conf = Config INFO "" "123" "456" 1 "" "Help me!" 25
+        conf = Config INFO TELEGRAM "123" "456" 1 "" "Help me!" 25
         sess = Session "1fb"
                        "https://lp.vk.com/wh202551745" "1000"
     describe "VK.Internal" $ do                  
