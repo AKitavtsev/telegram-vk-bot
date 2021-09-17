@@ -1,11 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
-{-# LANGUAGE ViewPatterns #-}
 
 module  TlTest where
 
 import Test.Hspec
-import Control.Monad.State
 import Network.HTTP.Client.Internal
 
 import qualified Data.Map as M
@@ -13,7 +10,6 @@ import qualified Data.Map as M
 import Bot
 import Services.Config
 import Services.Types (Priority(..))
-import Services.Logger
 import Bot.Telegram.Types
 import Bot.Telegram.Internal
 
