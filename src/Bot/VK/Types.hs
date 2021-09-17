@@ -9,8 +9,6 @@ import Data.Maybe (fromMaybe, isJust)
 import GHC.Generics
 import Text.Read (readMaybe)
 
-import qualified Data.Text as T
-
 import Bot
 import JsonDrop
 
@@ -74,7 +72,7 @@ data VKItemMessage =
     { m_from_id :: Int
     , m_random_id :: Integer
     , m_id :: Int
-    , m_text :: T.Text
+    , m_text :: String
     , m_payload :: Maybe String
     }
   deriving (Show, Eq, Generic)
