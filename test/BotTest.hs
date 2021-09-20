@@ -1,6 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
-{-# LANGUAGE ViewPatterns #-}
 
 module  BotTest where
 
@@ -32,9 +30,6 @@ botTest = hspec $ do
       vkIM2 = VKItemMessage 2 0 2 "1" Nothing
       event1 =   (Event "message_new" (VKMessage (vkIM1 {m_payload = Just "2"})) 123456789)
       event2 =   (Event "message_new" (VKMessage (vkIM2 {m_payload = Just "5"})) 123456790)
-        -- eventR = event {e_object = (VKMessage (vkIM {m_text = "/repeat"}))}
-        -- eventH = event {e_object = (VKMessage (vkIM {m_text = "/help"}))}
-      -- eventP = event {e_object = (VKMessage (vkIM {m_payload = Just "2"}))} 
       dv1 = DataLoop (Session "" "" "0") [event1] M.empty "0"
       dv2 = DataLoop (Session "" "" "0") [event1, event2] M.empty "0"
       

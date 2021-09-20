@@ -1,22 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
-{-# LANGUAGE ViewPatterns #-}
 
 module  VKTest where
 
-import Network.HTTP.Simple
 import Test.Hspec
 import Network.HTTP.Client.Internal
 
-import qualified Data.ByteString.Char8 as BC
-import qualified Data.ByteString.Lazy.Char8 as LBC
 import qualified Data.Map as M
 
 import Services.Config
 import Services.Types (Priority(..))
 import Bot.VK.Types
-import Bot.VK
-import Services.Logger
 import Bot
 import Bot.VK.Internal
 
