@@ -24,7 +24,6 @@ import System.Exit (exitFailure)
 
 import qualified Data.ByteString.Lazy.Char8 as LBC
 import qualified Data.Map as M
--- import qualified Data.Text as T
 
 import Services.Logger as SL
 
