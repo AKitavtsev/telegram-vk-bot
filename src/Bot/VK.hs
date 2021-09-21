@@ -29,6 +29,7 @@ newHandle conf = do
       }
   where
     getUpdatesVk botHandle hLogger dl = do
+      logDebug hLogger (" getUpdates In -- DataLoop = \n " ++ show dl)    
       let sess = session dl
           offs = offset dl
       resEither <- try (httpLBS $ eventBuildRequest sess conf offs)
@@ -43,10 +44,12 @@ newHandle conf = do
       when (newts == "") $ do
         logWarning hLogger " -- requesting new values key and ts"
         initSession botHandle hLogger conf
-      logDebug hLogger (" List of Updates received = \n " ++ show upds)
+      logDebug hLogger (" getUpdates Exit -- DataLoop = \n " ++ show dl)
       return dl {updates = upds, offset = newts}
     copyMessagesVk hLogger dl = do
+      logDebug hLogger (" copyMessages In -- DataLoop = \n " ++ show dl)    
       mapM_ copyMessage $ forCopy upds conf dict
+      logDebug hLogger (" copyMessages Exit -- DataLoop = \n " ++ show dl)
       return dl
       where
         upds = updates dl
@@ -54,9 +57,12 @@ newHandle conf = do
         copyMessage x = do
           let event = getVkItemMessage x
           logInfo hLogger (" to user " ++ show (m_from_id event))
+          logDebug hLogger (" copyMessages -- List of Updates received = \n " ++ show upds) 
           httpLBS $ echoBuildRequest conf event
     sendMessagesWithKbVK hLogger dl = do
+      logDebug hLogger (" sendMessagesWithKb  In-- DataLoop = \n " ++ show dl)    
       mapM_ sendMessageWithKb $ forKb upds
+      logDebug hLogger (" sendMessagesWithKb  Exit -- DataLoop = \n " ++ show dl)    
       return dl
       where
         upds = updates dl
@@ -64,15 +70,19 @@ newHandle conf = do
         sendMessageWithKb x = do
           let event = getVkItemMessage x
           logInfo hLogger (" to user " ++ show (m_from_id event))
+          logDebug hLogger (" sendMessagesWithKb -- List of Updates received = \n " ++ show upds) 
           httpLBS $ kbBuildRequest conf dict event
     sendMessagesWithHelpVK hLogger dl = do
+      logDebug hLogger (" sendMessagesWithHelp In -- DataLoop = \n " ++ show dl)    
       mapM_ sendMessageWithHelp $ forHelp upds
+      logDebug hLogger (" sendMessagesWithHelp Exit -- DataLoop = \n " ++ show dl)    
       return dl
       where
         upds = updates dl
         sendMessageWithHelp x = do
           let event = getVkItemMessage x
           logInfo hLogger (" to user " ++ show (m_from_id event))
+          logDebug hLogger (" sendMessagesWithHelp -- List of Updates received = \n " ++ show upds) 
           httpLBS $ helpBuildRequest conf event
 
 initSession :: Upd a => Bot.Handle a -> SL.Handle -> Config -> IO ()
