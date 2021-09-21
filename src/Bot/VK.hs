@@ -15,7 +15,7 @@ import qualified Data.Map as M
 import Bot
 import Bot.VK.Internal
 import Bot.VK.Types
-import Services.Config
+import Config
 import Services.Logger as SL
 
 newHandle :: Config -> IO (Bot.Handle Event)
