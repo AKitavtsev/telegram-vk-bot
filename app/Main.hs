@@ -22,8 +22,8 @@ main = do
   case сonfigApi conf of 
       "vk" -> do
         handleVK <- VK.newHandle conf
-        VK.initSession handleVK hLogger conf
+        loopBot  (VK.initSession handleVK hLogger conf) handleVK hLogger (DataLoop (Session "" "" "0") [] M.empty "0")       
       _ -> do
         handleTl <- TL.newHandle conf
-        loopBot  handleTl hLogger (DataLoop (Session "" "" "0") [] M.empty "0")
+        loopBot  (pure ()) handleTl hLogger (DataLoop (Session "" "" "0") [] M.empty "0")
 

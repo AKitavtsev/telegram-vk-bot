@@ -6,7 +6,7 @@ module Bot.VK
 import Control.Exception
 import Control.Monad.State
 import Data.Aeson
-import Data.Maybe (fromMaybe, isNothing)
+import Data.Maybe (fromMaybe)
 import Network.HTTP.Simple
 import System.Exit
 
@@ -28,7 +28,7 @@ newHandle conf = do
       , sendMessagesWithHelp = sendMessagesWithHelpVK
       }
   where
-    getUpdatesVk botHandle hLogger dl = do
+    getUpdatesVk handleVK hLogger dl = do
       logDebug hLogger (" getUpdates In -- DataLoop = \n " ++ show dl)    
       let sess = session dl
           offs = offset dl
@@ -43,7 +43,7 @@ newHandle conf = do
           upds = fromMaybe [] (a_updates answer)
       when (newts == "") $ do
         logWarning hLogger " -- requesting new values key and ts"
-        initSession botHandle hLogger conf
+        loopBot  (Bot.VK.initSession handleVK hLogger conf) handleVK hLogger (DataLoop (Session "" "" "0") [] M.empty "0") 
       logDebug hLogger (" getUpdates Exit -- DataLoop = \n " ++ show dl)
       return dl {updates = upds, offset = newts}
     copyMessagesVk hLogger dl = do
@@ -85,10 +85,9 @@ newHandle conf = do
           logDebug hLogger (" sendMessagesWithHelp -- List of Updates received = \n " ++ show upds) 
           httpLBS $ helpBuildRequest conf event
 
-initSession :: Upd a => Bot.Handle a -> SL.Handle -> Config -> IO ()
-initSession botHandle hLogger conf = do
+initSession :: Bot.Handle Event -> SL.Handle -> Config -> IO ()
+initSession  handleVK hLogger conf = do
   resEither <- try (httpLBS $ initBuildRequest conf)
-                 -- :: IO (Either SomeException (Response LBC.ByteString))
   res <- testException resEither hLogger
   let rsc = getResponseStatusCode res
   when (rsc /= 200) $ do
@@ -99,7 +98,7 @@ initSession botHandle hLogger conf = do
   case sessionR of
     (Just (VKResponse x)) -> do
       logDebug hLogger ("-- initialized session with parameters:\n" ++ show x)
-      loopBot botHandle hLogger (DataLoop x [] M.empty $ ts x)
+      loopBot (pure ()) handleVK hLogger (DataLoop x [] M.empty $ ts x)
       return ()
     Nothing -> do
       logError hLogger " -- Wrong vkToken or groupId"

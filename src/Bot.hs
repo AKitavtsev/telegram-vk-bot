@@ -7,7 +7,7 @@ module Bot
   , DataLoop(..)
   , Upd(..)
   , Session(..)
-  , UserRepetition(..)
+  , UserRepetition
   , newDict
   , loopBot
   , messageOK
@@ -65,13 +65,15 @@ class Upd a where
   getUserAndNumRep :: [a] -> [(Int, Int)]
   listUpdWithKey :: [a] -> [a]
 
-loopBot :: Upd a => Bot.Handle a -> SL.Handle -> DataLoop a -> IO ()
-loopBot botHandle hLogger dl = do
+loopBot :: Upd a => IO () -> Bot.Handle a -> SL.Handle -> DataLoop a -> IO ()
+loopBot botInit botHandle hLogger dl = do
+  botInit 
   newDl <-
-    getUpdates botHandle botHandle hLogger dl >>= copyMessages botHandle hLogger >>=
+    getUpdates botHandle botHandle hLogger dl >>= 
+    copyMessages botHandle hLogger >>=
     sendMessagesWithKb botHandle hLogger >>=
     sendMessagesWithHelp botHandle hLogger
-  loopBot botHandle hLogger (newDict newDl)
+  loopBot (pure ()) botHandle hLogger (newDict newDl)
 
 messageOK ::
      Response LBC.ByteString -> SL.Handle -> IO (Response LBC.ByteString)
