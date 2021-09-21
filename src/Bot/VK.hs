@@ -90,6 +90,7 @@ initSession botHandle hLogger conf = do
     (Just (VKResponse x)) -> do
       logDebug hLogger ("-- initialized session with parameters:\n" ++ show x)
       loopBot botHandle hLogger (DataLoop x [] M.empty $ ts x)
+      
       return ()
     Nothing -> do
       logError hLogger " -- Wrong vkToken or groupId"
