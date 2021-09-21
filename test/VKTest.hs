@@ -12,7 +12,7 @@ import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy.Char8 as LBC
 import qualified Data.Map as M
 
-import Services.Config
+import Config
 import Services.Types (Priority(..))
 import Bot.VK.Types
 import Bot.VK
