@@ -7,7 +7,6 @@ module Bot.Telegram.Types where
 import Control.Applicative ((<|>))
 import Data.Aeson.Types
 import Data.Maybe (fromMaybe, isJust, isNothing)
-import Data.Text (Text)
 import GHC.Generics
 import Text.Read (readMaybe)
 
@@ -67,13 +66,13 @@ data Message =
   Message
     { message_id :: Int
     , from :: User
-    , text :: Maybe Text
+    , text :: Maybe String
     }
   deriving (FromJSON, ToJSON, Show, Eq, Generic)
 
 data CallbackQuery =
   CallbackQuery
-    { cq_id :: Text
+    { cq_id :: String
     , cq_from :: User
     , cq_data :: Maybe String
     }
@@ -89,7 +88,7 @@ data User =
   User
     { user_id :: Int
     , user_is_bot :: Bool
-    , user_first_name :: Text
+    , user_first_name :: String
     }
   deriving (Show, Eq, Generic)
 
@@ -107,8 +106,8 @@ newtype InlineKeyboardMarkup =
 
 data InlineKeyboardButton =
   InlineKeyboardButton
-    { ikb_text :: Text
-    , ikb_callback_data :: Maybe Text
+    { ikb_text :: String
+    , ikb_callback_data :: Maybe String
     }
   deriving (Show, Generic)
 
