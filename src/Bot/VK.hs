@@ -42,16 +42,22 @@ newHandle conf = do
       let answer =
             fromMaybe
               (Answer Nothing Nothing Nothing)
-              ((decode $ getResponseBody res) :: Maybe Answer)                
+              ((decode $ getResponseBody res) :: Maybe Answer)
           newts = fromMaybe "0" (a_ts answer)
           upds = fromMaybe [] (a_updates answer)
+      logDebug hLogger ("-- answer  "++ (show answer))           
+
       when (isJust (a_failed answer)) $ do
         logWarning hLogger " -- requesting new values key and ts"
         initSession botHandle hLogger conf
-      when (null upds) $ do
+      when (irrelevantUpds upds) $ do
         logWarning hLogger " -- skipping irrelevant update"
         loopBot botHandle hLogger (dl {updates = upds, offset = newts})      
       return dl {updates = upds, offset = newts}
+      where 
+        irrelevantUpds [] = True
+        irrelevantUpds [Event _ Nothing _ ] = True
+        irrelevantUpds _ = False
     copyMessagesVk hLogger dl = do
       logDebug hLogger (" copyMessages In -- DataLoop = \n " ++ show dl)    
       mapM_ copyMessage $ forCopy upds conf dict
