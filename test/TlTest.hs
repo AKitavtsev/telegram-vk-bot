@@ -8,7 +8,7 @@ import Network.HTTP.Client.Internal
 import qualified Data.Map as M
 
 import Bot
-import Services.Config
+import Config
 import Services.Types (Priority(..))
 import Bot.Telegram.Types
 import Bot.Telegram.Internal

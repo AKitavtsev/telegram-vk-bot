@@ -7,7 +7,7 @@ import Network.HTTP.Client.Internal
 
 import qualified Data.Map as M
 
-import Services.Config
+import Config
 import Services.Types (Priority(..))
 import Bot.VK.Types
 import Bot

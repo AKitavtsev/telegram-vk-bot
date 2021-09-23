@@ -12,7 +12,7 @@ import qualified Data.Map as M
 
 import Bot
 import Bot.Telegram.Types
-import Services.Config
+import Config
 
 forCopy :: [Update] -> Config -> UserRepetition -> [Update]
 forCopy upds conf dict = concatMap repeating (filtred $ listUpdWithMessage upds)
