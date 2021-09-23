@@ -28,8 +28,8 @@ botTest = hspec $ do
       
   let vkIM1 = VKItemMessage 1 0 2 "1" Nothing
       vkIM2 = VKItemMessage 2 0 2 "1" Nothing
-      event1 =   (Event "message_new" (VKMessage (vkIM1 {m_payload = Just "2"})) 123456789)
-      event2 =   (Event "message_new" (VKMessage (vkIM2 {m_payload = Just "5"})) 123456790)
+      event1 =   (Event "message_new" (Just (VKMessage (vkIM1 {m_payload = Just "2"}))) 123456789)
+      event2 =   (Event "message_new" (Just (VKMessage (vkIM2 {m_payload = Just "5"}))) 123456790)
       dv1 = DataLoop (Session "" "" "0") [event1] M.empty "0"
       dv2 = DataLoop (Session "" "" "0") [event1, event2] M.empty "0"
       

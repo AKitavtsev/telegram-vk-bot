@@ -17,10 +17,10 @@ import Bot.VK.Internal
 vkTest :: IO ()
 vkTest = hspec $ do
     let vkIM = VKItemMessage 1 0 2 "1" Nothing
-        event =   (Event "message_new" (VKMessage vkIM) 123456789)
-        eventR = event {e_object = (VKMessage (vkIM {m_text = "/repeat"}))}
-        eventH = event {e_object = (VKMessage (vkIM {m_text = "/help"}))}
-        eventP = event {e_object = (VKMessage (vkIM {m_payload = Just "2"}))} 
+        event =   (Event "message_new" (Just (VKMessage vkIM)) 123456789)
+        eventR = event {e_object = (Just (VKMessage (vkIM {m_text = "/repeat"})))}
+        eventH = event {e_object = (Just (VKMessage (vkIM {m_text = "/help"})))}
+        eventP = event {e_object = (Just (VKMessage (vkIM {m_payload = Just "2"})))} 
         conf = Config INFO "" "123" "456" 1 "" "Help me!" 25
         sess = Session "1fb"
                        "https://lp.vk.com/wh202551745" "1000"

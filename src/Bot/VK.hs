@@ -6,7 +6,8 @@ module Bot.VK
 import Control.Exception
 import Control.Monad.State
 import Data.Aeson
-import Data.Maybe (fromMaybe, isNothing)
+import Data.List (null)
+import Data.Maybe (fromMaybe, isNothing, isJust)
 import Network.HTTP.Simple
 import System.Exit
 
@@ -41,12 +42,15 @@ newHandle conf = do
       let answer =
             fromMaybe
               (Answer Nothing Nothing Nothing)
-              ((decode $ getResponseBody res) :: Maybe Answer)
-          newts = fromMaybe "" (a_ts answer)
+              ((decode $ getResponseBody res) :: Maybe Answer)                
+          newts = fromMaybe "0" (a_ts answer)
           upds = fromMaybe [] (a_updates answer)
-      when (newts == "") $ do            
+      when (isJust (a_failed answer)) $ do
         logWarning hLogger " -- requesting new values key and ts"
         initSession botHandle hLogger conf
+      when (null upds) $ do
+        logWarning hLogger " -- skipping irrelevant update"
+        loopBot botHandle hLogger (dl {updates = upds, offset = newts})      
       return dl {updates = upds, offset = newts}
     copyMessagesVk hLogger dl = do
       logDebug hLogger (" copyMessages In -- DataLoop = \n " ++ show dl)    
@@ -96,8 +100,7 @@ initSession botHandle hLogger conf = do
   case sessionR of
     (Just (VKResponse x)) -> do
       logDebug hLogger ("-- initialized session with parameters:\n" ++ show x)
-      loopBot botHandle hLogger (DataLoop x [] M.empty $ ts x)
-      
+      loopBot botHandle hLogger (DataLoop x [] M.empty $ ts x)      
       return ()
     Nothing -> do
       logError hLogger " -- Wrong vkToken or groupId"

@@ -101,5 +101,5 @@ helpBuildRequest conf event = setRequestQueryString qi $ parseRequest_ appVK
       , ("v", Just "5.126")
       ]
 
-getVkItemMessage :: Event -> VKItemMessage
-getVkItemMessage e = m_message $ e_object e
+-- getVKItemMessage :: Event -> VKItemMessage
+-- getVkItemMessage e = m_message $ e_object e
