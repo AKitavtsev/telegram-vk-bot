@@ -12,7 +12,7 @@ import qualified Data.Map as M
 
 import Bot
 import Bot.VK.Types
-import Services.Config
+import Config
 
 forCopy :: [Event] -> Config -> UserRepetition -> [Event]
 forCopy upds conf dict = concatMap repeating (filtred upds)

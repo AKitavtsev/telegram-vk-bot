@@ -11,7 +11,7 @@ import Bot
 import Bot.Telegram.Internal
 import Bot.Telegram.Types
 
-import Services.Config
+import Config
 import Services.Logger as SL
 
 

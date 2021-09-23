@@ -1,6 +1,4 @@
-module Services.Impl.Configurator
-  ( newHandle
-  ) where
+module Config where
 
 import Control.Monad (when)
 
@@ -11,13 +9,22 @@ import Services.Types (Priority(..))
 
 import qualified Data.Configurator as C
 import qualified Data.Text as T
-import qualified Services.Config as SC
 
-newHandle :: IO SC.Handle
-newHandle = do
-  return $ SC.Handle {SC.getConfig = getConfig}
-  where
-    getConfig = do
+data Config =
+  Config
+    { levelLog :: !Priority
+    , сonfigApi :: !String
+    , groupId :: !String
+    , сonfigToken :: !String
+    , сonfigNumberRepeat :: !Int
+    , messageForRepeat :: !String
+    , messageForHelp :: !String
+    , myTimeout :: !Int
+    }
+  deriving (Show)
+
+
+getConfig = do
       conf <- C.load [C.Optional "bot.conf", C.Optional "local_bot.conf"]
       levelStr <-
         C.lookupDefault "INFO" conf (T.pack "logger.loggLevel") :: IO String
@@ -38,7 +45,7 @@ newHandle = do
         C.lookupDefault "" conf (T.pack "bot.messageForHelp") :: IO String
       myTimeout <- C.lookupDefault 5 conf (T.pack "bot.timeout") :: IO Int
       return
-        (SC.Config
+        (Config
            level
            api
            groupId
