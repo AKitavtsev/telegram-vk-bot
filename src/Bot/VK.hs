@@ -9,7 +9,6 @@ import Data.Aeson
 import Data.List (null)
 import Data.Maybe (fromMaybe, isNothing, isJust)
 import Network.HTTP.Simple
-import System.Exit
 
 import qualified Data.Map as M
 
@@ -18,6 +17,8 @@ import Bot.VK.Internal
 import Bot.VK.Types
 import Config
 import Services.Logger as SL
+
+import System.Exit (exitFailure)
 
 import qualified Data.ByteString.Lazy.Char8 as LBC
 
