@@ -45,6 +45,25 @@ initBuildRequest conf =
       , ("v", Just "5.126")
       ]
 
+setBuildRequest :: Config -> Request
+setBuildRequest conf =
+  setRequestQueryString qi $
+  parseRequest_ "https://api.vk.com/method/groups.setLongPollSettings"
+  where
+    qi =
+      [ ("group_id", Just (BC.pack $ groupId conf))
+      , ("access_token", Just (BC.pack $ сonfigToken conf))
+      , ("v", Just "5.126")
+      , ("api_version", Just "5.126")
+      , ("enabled", Just "1")
+      , ("message_new", Just "1")
+      , ("message_reply", Just "0")
+      , ("message_allow", Just "0")
+      , ("message_deny", Just "0")
+      , ("message_edit", Just "0")
+      , ("message_typing_state", Just "0")
+      , ("message_event", Just "0")
+
 eventBuildRequest :: Session -> Config -> String -> Request
 eventBuildRequest sess conf offs =
   setRequestQueryString qi $ parseRequest_ $ server sess
@@ -101,3 +120,5 @@ helpBuildRequest conf event = setRequestQueryString qi $ parseRequest_ appVK
       , ("v", Just "5.126")
       ]
 
+getVkItemMessage :: Event -> VKItemMessage
+getVkItemMessage e = m_message $ e_object e

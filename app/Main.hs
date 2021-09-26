@@ -20,6 +20,7 @@ main = do
   case сonfigApi conf of 
       "vk" -> do
         handleVK <- VK.newHandle conf
+        VK.eventSetting hLogger conf
         VK.initSession handleVK hLogger conf
       _ -> do
         handleTl <- TL.newHandle conf

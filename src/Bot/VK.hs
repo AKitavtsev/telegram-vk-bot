@@ -1,6 +1,7 @@
 module Bot.VK
   ( newHandle
   , initSession
+  , eventSetting
   ) where
 
 import Control.Exception
@@ -51,14 +52,7 @@ newHandle conf = do
       when (isJust (a_failed answer)) $ do
         logWarning hLogger " -- requesting new values key and ts"
         initSession botHandle hLogger conf
-      when (irrelevantUpds upds) $ do
-        logWarning hLogger " -- skipping irrelevant update"
-        loopBot botHandle hLogger (dl {updates = upds, offset = newts})      
       return dl {updates = upds, offset = newts}
-      where 
-        irrelevantUpds [] = True
-        irrelevantUpds [Event _ Nothing _ ] = True
-        irrelevantUpds _ = False
     copyMessagesVk hLogger dl = do
       logDebug hLogger (" copyMessages In -- DataLoop = \n " ++ show dl)    
       mapM_ copyMessage $ forCopy upds conf dict
@@ -96,7 +90,6 @@ newHandle conf = do
 initSession :: Upd a => Bot.Handle a -> SL.Handle -> Config -> IO ()
 initSession botHandle hLogger conf = do
   resEither <- try (httpLBS $ initBuildRequest conf)
-                 -- :: IO (Either SomeException (Response LBC.ByteString))
   res <- testException resEither hLogger
   let rsc = getResponseStatusCode res
   when (rsc /= 200) $ do
@@ -112,3 +105,13 @@ initSession botHandle hLogger conf = do
     Nothing -> do
       logError hLogger " -- Wrong vkToken or groupId"
       exitFailure
+
+eventSetting :: SL.Handle -> Config -> IO ()
+eventSetting hLogger conf = do
+  resEither <- try (httpLBS $ setBuildRequest conf)
+  res <- testException resEither hLogger
+  let rsc = getResponseStatusCode res
+  when (rsc /= 200) $ do
+    logError hLogger ("-- status code of response " ++ show rsc)
+    exitFailure
+  return ()

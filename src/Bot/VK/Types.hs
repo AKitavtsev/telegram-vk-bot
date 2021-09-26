@@ -34,10 +34,11 @@ data Answer =
 instance FromJSON Answer where
   parseJSON = parseJsonDrop 2
 
+
 data Event =
   Event
     { e_type :: String
-    , e_object :: Maybe VKMessage
+    , e_object :: VKMessage
     , e_group_id :: Integer
     }
   deriving (Show, Eq, Generic)
@@ -46,21 +47,17 @@ instance FromJSON Event where
   parseJSON = parseJsonDrop 2
 
 instance Upd Event where
-  usId e  = m_from_id (getVkItemMessage e)
-  mesId e = m_id (getVkItemMessage e)
-  txt e = m_text (getVkItemMessage e)
+  usId e = m_from_id $ m_message $ e_object e
+  mesId e = m_id $ m_message $ e_object e
+  txt e = m_text $ m_message $ e_object e
   getUserAndNumRep = map fgets
     where
-      fgets x = (usId x, payload x)
+      fgets x = (m_from_id $ m_message $ e_object x, payload x)
       payload x =
         fromMaybe
           0
-          (readMaybe (fromMaybe "0" $ m_payload $ getVkItemMessage x) :: Maybe Int)
-  listUpdWithKey = filter (\x -> isJust (m_payload $ getVkItemMessage x))
-
-getVkItemMessage :: Event -> VKItemMessage
-getVkItemMessage e = m_message $ 
-            fromMaybe (VKMessage (VKItemMessage 0 0 0 "" Nothing)) (e_object e)
+          (readMaybe $ fromMaybe "0" $ m_payload $ m_message $ e_object x :: Maybe Int)
+  listUpdWithKey = filter (\x -> isJust (m_payload (m_message $ e_object x)))
 
 newtype VKMessage =
   VKMessage
