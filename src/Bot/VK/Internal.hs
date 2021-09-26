@@ -63,7 +63,7 @@ setBuildRequest conf =
       , ("message_edit", Just "0")
       , ("message_typing_state", Just "0")
       , ("message_event", Just "0")
-
+      ]
 eventBuildRequest :: Session -> Config -> String -> Request
 eventBuildRequest sess conf offs =
   setRequestQueryString qi $ parseRequest_ $ server sess
