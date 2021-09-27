@@ -1,3 +1,4 @@
+
 module Bot.Telegram
   ( newHandle
   ) where
@@ -25,7 +26,7 @@ newHandle conf = do
       , sendMessagesWithHelp = sendMessagesWithHelpTl
       }
   where
-    getUpdatesTl botHandle hLogger dl = do
+    getUpdatesTl handleTl hLogger dl = do
       let offs = offset dl
       resEither <- try (httpLBS $ eventBuildRequest conf offs)
       res' <- testException resEither hLogger
