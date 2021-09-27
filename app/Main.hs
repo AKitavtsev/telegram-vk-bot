@@ -20,7 +20,7 @@ main = do
   case сonfigApi conf of
       VK -> do
         handleVK <- VK.newHandle conf
-        eventSetting hLogger conf
+        VK.eventSetting hLogger conf
         loopBot  (VK.initSession handleVK hLogger conf) handleVK hLogger (DataLoop (Session "" "" "0") [] M.empty "0")       
       TELEGRAM -> do
         handleTl <- TL.newHandle conf

@@ -48,7 +48,6 @@ newHandle conf = do
           newts = fromMaybe "0" (a_ts answer)
           upds = fromMaybe [] (a_updates answer)
       logDebug hLogger ("-- answer  "++ (show answer))           
-
       when (isJust (a_failed answer)) $ do
         logWarning hLogger " -- requesting new values key and ts"
         loopBot  (Bot.VK.initSession handleVK hLogger conf) handleVK hLogger (DataLoop (Session "" "" "0") [] M.empty "0") 

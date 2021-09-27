@@ -13,7 +13,7 @@ import qualified Data.Text as T
 data Config =
   Config
     { levelLog :: !Priority
-    , сonfigApi :: !String
+    , сonfigApi :: !Api
     , groupId :: !String
     , сonfigToken :: !String
     , сonfigNumberRepeat :: !Int

@@ -9,7 +9,7 @@ import qualified Data.Map as M
 
 import Config
 import Services.Types
-mport Bot.VK.Types
+import Bot.VK.Types
 import Bot
 import Bot.VK.Internal
 
