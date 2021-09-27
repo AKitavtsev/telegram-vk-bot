@@ -8,8 +8,8 @@ import Network.HTTP.Client.Internal
 import qualified Data.Map as M
 
 import Config
-import Services.Types (Priority(..))
-import Bot.VK.Types
+import Services.Types
+mport Bot.VK.Types
 import Bot
 import Bot.VK.Internal
 
@@ -21,7 +21,7 @@ vkTest = hspec $ do
         eventR = event {e_object = (VKMessage (vkIM {m_text = "/repeat"}))}
         eventH = event {e_object = (VKMessage (vkIM {m_text = "/help"}))}
         eventP = event {e_object = (VKMessage (vkIM {m_payload = Just "2"}))} 
-        conf = Config INFO "" "123" "456" 1 "" "Help me!" 25
+        conf = Config INFO TELEGRAM "123" "456" 1 "" "Help me!" 25
         sess = Session "1fb"
                        "https://lp.vk.com/wh202551745" "1000"
     describe "VK.Internal" $ do                  
