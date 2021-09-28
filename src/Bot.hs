@@ -11,7 +11,7 @@ module Bot
   , newDict
   , loopBot
   , messageOK
-  , testException
+  , exceptionHandling
   ) where
 
 import Control.Concurrent (threadDelay)
@@ -67,7 +67,7 @@ class Upd a where
 
 loopBot :: Upd a => IO () -> Bot.Handle a -> SL.Handle -> DataLoop a -> IO ()
 loopBot botInit botHandle hLogger dl = do
-  botInit 
+  botInit
   newDl <-
     getUpdates botHandle botHandle hLogger dl >>= 
     copyMessages botHandle hLogger >>=
@@ -84,23 +84,13 @@ messageOK res hLogger = do
     exitFailure
   return res
 
-testException ::
-     Either SomeException (Response LBC.ByteString)
-  -- -> Bot.Handle
-  -> SL.Handle
-  -> IO (Response LBC.ByteString)
-testException rese hLogger = do
-  case rese of
-    Right val -> return val
-    Left _ -> do
-      logError
-        hLogger
-        "-- Connection Failure -- Trying to initialize the session"
-      threadDelay 25000000
-      -- initSession botHandle hLogger
-      _ <- exitFailure
-      httpLBS defaultRequest
-
+exceptionHandling :: Upd a => IO () -> Bot.Handle a -> SL.Handle -> DataLoop a -> IO ()
+exceptionHandling  initBot botHandle hLogger dl = do
+  logError hLogger "-- Connection Failure -- Wait and try again"
+  threadDelay 25000000
+  loopBot initBot botHandle hLogger dl
+  return ()
+      
 newDict :: Upd a => DataLoop a -> DataLoop a
 newDict dl = dl {dictionary = dict}
   where
