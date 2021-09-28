@@ -40,14 +40,14 @@ newHandle conf = do
       resEither <- try (httpLBS $ eventBuildRequest sess conf offs)
       res' <- testException resEither hLogger
       res <- messageOK res' hLogger
-      logDebug hLogger (" -- ResponseBody:" ++  (LBC.unpack $ getResponseBody res))
+      logDebug hLogger (" -- ResponseBody:" ++  LBC.unpack (getResponseBody res))
       let answer =
             fromMaybe
               (Answer Nothing Nothing Nothing)
               ((decode $ getResponseBody res) :: Maybe Answer)
           newts = fromMaybe "0" (a_ts answer)
           upds = fromMaybe [] (a_updates answer)
-      logDebug hLogger ("-- answer  "++ (show answer))           
+      logDebug hLogger ("-- answer  "++ show answer)           
       when (isJust (a_failed answer)) $ do
         logWarning hLogger " -- requesting new values key and ts"
         loopBot  (Bot.VK.initSession handleVK hLogger conf) handleVK hLogger (DataLoop (Session "" "" "0") [] M.empty "0") 
@@ -114,4 +114,3 @@ eventSetting hLogger conf = do
   when (rsc /= 200) $ do
     logError hLogger ("-- status code of response " ++ show rsc)
     exitFailure
-  return ()

@@ -17,15 +17,15 @@ import Bot.Telegram.Internal
 
 tlTest :: IO ()
 tlTest = hspec $ do
-  let mess = (Message 261
-                      (User 484189456 False "Андрей") (Just "222"))
+  let mess = Message 261
+                      (User 484189456 False "Андрей") (Just "222")
       upMessage = Update 146878330 (Just mess) Nothing
       upCallbackQuery = Update 146878330
                         Nothing
                         (Just (CallbackQuery "2079577882558908621" 
                         (User 484189457 False "Андрей")  (Just "3")))
-      uPDR = Update 146878330 (Just mess {text = (Just "/repeat")}) Nothing
-      uPDН = Update 146878330 (Just mess {text = (Just "/help")}) Nothing
+      uPDR = Update 146878330 (Just mess {text = Just "/repeat"}) Nothing
+      uPDН = Update 146878330 (Just mess {text = Just "/help"}) Nothing
       conf = Config INFO TELEGRAM "123" "456"  1 "RepeatMe" "Help me!" 25
       sess = Session "" "" "0"
 
