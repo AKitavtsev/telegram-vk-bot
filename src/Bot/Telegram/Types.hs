@@ -6,7 +6,7 @@ module Bot.Telegram.Types where
 
 import Control.Applicative ((<|>))
 import Data.Aeson.Types
-import Data.Maybe (fromMaybe, isJust, isNothing)
+import Data.Maybe (fromMaybe, isJust)
 import GHC.Generics
 import Text.Read (readMaybe)
 
@@ -40,19 +40,19 @@ instance Upd Update where
       testMessage =
         case message upd of
           Nothing -> Nothing
-          Just (Message _ from _) -> Just $ user_id from
+          Just (Message _ f _) -> Just $ user_id f
       testCallbackQuery =
         case callback_query upd of
           Nothing -> Nothing
-          Just (CallbackQuery _ from _) -> Just $ user_id from
+          Just (CallbackQuery _ f _) -> Just $ user_id f
   mesId upd =
     case message upd of
       Nothing -> 0
-      Just (Message message_id _ _) -> message_id
+      Just (Message m _ _) -> m
   txt upd =
     case message upd of
       Nothing -> ""
-      Just (Message _ _ text) -> fromMaybe "" text
+      Just (Message _ _ t) -> fromMaybe "" t
   getUserAndNumRep = map fgets
     where
       fgets x = (usId x, fromMaybe 0 (readMaybe (cbData x) :: Maybe Int))
