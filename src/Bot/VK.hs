@@ -10,8 +10,6 @@ import Data.Aeson
 import Data.Maybe (fromMaybe, isJust)
 import Network.HTTP.Simple
 
-import qualified Data.Map as M
-
 import Bot
 import Bot.VK.Internal
 import Bot.VK.Types
