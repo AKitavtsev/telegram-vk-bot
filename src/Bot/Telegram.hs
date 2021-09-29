@@ -1,17 +1,16 @@
-
 module Bot.Telegram
   ( newHandle
   ) where
 
 import Control.Exception
-
 import Data.Aeson
 import Network.HTTP.Simple
+
+import qualified Data.ByteString.Lazy.Char8 as LBC
 
 import Bot
 import Bot.Telegram.Internal
 import Bot.Telegram.Types
-
 import Config
 import Services.Logger as SL
 
@@ -29,11 +28,16 @@ newHandle conf = do
     getUpdatesTl handleTl hLogger dl = do
       let offs = offset dl
       resEither <- try (httpLBS $ eventBuildRequest conf offs)
-      res' <- testException resEither hLogger
-      res <- messageOK res' hLogger
-      let upds = listUpd (decode $ getResponseBody res)
-      logDebug hLogger (" List of Updates received = \n " ++ show upds)
-      return dl {updates = upds, offset = newoffs upds}
+                   :: IO (Either SomeException (Response LBC.ByteString))
+      case resEither of
+        Left _ -> do
+          exceptionHandling (pure ()) handleTl hLogger dl
+          return dl
+        Right res' -> do 
+          res <- messageOK res' hLogger
+          let upds = listUpd (decode $ getResponseBody res)
+          logDebug hLogger (" List of Updates received = \n " ++ show upds)
+          return dl {updates = upds, offset = newoffs upds}
     copyMessagesTl hLogger dl = do
       mapM_ copyMessage $ forCopy upds conf dict
       return dl

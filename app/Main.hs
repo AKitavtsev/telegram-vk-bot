@@ -21,7 +21,7 @@ main = do
       VK -> do
         handleVK <- VK.newHandle conf
         VK.eventSetting hLogger conf
-        loopBot  (VK.initSession handleVK hLogger conf) handleVK hLogger (DataLoop (Session "" "" "0") [] M.empty "0")       
+        loopBot  (VK.initSession handleVK hLogger conf M.empty) handleVK hLogger (DataLoop (Session "" "" "0") [] M.empty "0")       
       TELEGRAM -> do
         handleTl <- TL.newHandle conf
         loopBot  (pure ()) handleTl hLogger (DataLoop (Session "" "" "0") [] M.empty "0")
