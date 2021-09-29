@@ -23,7 +23,7 @@ data Config =
     }
   deriving (Show)
 
-
+getConfig :: IO Config
 getConfig = do
       conf <- C.load [C.Optional "bot.conf", C.Optional "local_bot.conf"]
       levelStr <-
@@ -43,24 +43,25 @@ getConfig = do
               "vk" -> VK
               _ -> TELEGRAM     
            
-      groupId <- C.lookupDefault "" conf (T.pack "bot.groupId") :: IO String
+      groupId_ <- C.lookupDefault "" conf (T.pack "bot.groupId") :: IO String
       token <- getToken conf api
       numberRepeat <- C.lookupDefault 1 conf (T.pack "bot.repeat") :: IO Int
-      messageForRepeat <-
+      messageForRepeat_ <-
         C.lookupDefault "" conf (T.pack "bot.messageForRepeat") :: IO String
-      messageForHelp <-
+      messageForHelp_ <-
         C.lookupDefault "" conf (T.pack "bot.messageForHelp") :: IO String
-      myTimeout <- C.lookupDefault 5 conf (T.pack "bot.timeout") :: IO Int
+      myTimeout_ <- C.lookupDefault 5 conf (T.pack "bot.timeout") :: IO Int
       return
         (Config
            level
            api
-           groupId
+           groupId_
            token
            numberRepeat
-           messageForRepeat
-           messageForHelp
-           myTimeout)
+           messageForRepeat_
+           messageForHelp_
+           myTimeout_
+        )
       where
         getToken conf TELEGRAM = do
           token <- C.lookupDefault "" conf (T.pack "bot.token") :: IO String
